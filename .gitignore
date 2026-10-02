@@ -1,0 +1,4 @@
+# Editor settings (machine-specific)
+.vscode/
+# Arduino build output
+build/
