@@ -12,9 +12,9 @@ namespace skeleton
 
 /// @brief Plays a scripted jaw motion that mimics a spoken phrase.
 ///
-/// The script is a list of (openness, hold time) keyframes, one or two per
-/// syllable of "Who are you? What are you doing here?". Call update() every
-/// loop iteration; it never blocks.
+/// The script is a list of (openness, hold time) keyframes generated from
+/// the voice clip (see mouth_script.hpp), so the jaw follows the recorded
+/// speech. Call update() every loop iteration; it never blocks.
 ///
 /// @code{.cpp}
 /// Mouth mouth(3U, 90U, 130U);

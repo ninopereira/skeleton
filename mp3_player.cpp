@@ -22,11 +22,10 @@ constexpr uint8_t FRAME_SIZE = 8U;
 
 /// @name Command codes
 /// @{
+constexpr uint8_t CMD_PLAY_TRACK = 0x03U;
 constexpr uint8_t CMD_SET_VOLUME = 0x06U;
 constexpr uint8_t CMD_LOOP_TRACK = 0x08U;
 constexpr uint8_t CMD_SELECT_DEVICE = 0x09U;
-constexpr uint8_t CMD_PLAY = 0x0DU;
-constexpr uint8_t CMD_PAUSE = 0x0EU;
 /// @}
 
 constexpr uint16_t DEVICE_TF_CARD = 0x0002U;
@@ -62,14 +61,9 @@ void Mp3Player::playLooped(uint16_t track)
   sendCommand(CMD_LOOP_TRACK, track);
 }
 
-void Mp3Player::pause()
+void Mp3Player::playOnce(uint16_t track)
 {
-  sendCommand(CMD_PAUSE, 0U);
-}
-
-void Mp3Player::resume()
-{
-  sendCommand(CMD_PLAY, 0U);
+  sendCommand(CMD_PLAY_TRACK, track);
 }
 
 void Mp3Player::sendCommand(uint8_t command, uint16_t data)

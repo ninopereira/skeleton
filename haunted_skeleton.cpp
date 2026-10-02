@@ -21,8 +21,7 @@ HauntedSkeleton::HauntedSkeleton()
       buzzer_(config::BUZZER_PIN),
       mode_(Mode::WAITING),
       cooldown_start_ms_(0U),
-      music_paused_at_ms_(0U),
-      is_music_paused_(false)
+      voice_start_ms_(0U)
 {
 }
 
@@ -49,20 +48,17 @@ void HauntedSkeleton::update(uint32_t now_ms)
   mouth_.update(now_ms);
   arms_.update(now_ms);
   updateMode(now_ms);
-  updateMusic(now_ms);
 }
 
 void HauntedSkeleton::greetVisitor(uint32_t now_ms)
 {
-  mp3_.pause();
-  is_music_paused_ = true;
-  music_paused_at_ms_ = now_ms;
+  mp3_.playOnce(config::MP3_VOICE_TRACK);
+  voice_start_ms_ = now_ms;
   // The visitor's arrival time is unpredictable, which makes it a good
   // seed: the arm pattern differs on every greeting.
   randomSeed(micros());
-  mouth_.startSpeech(now_ms);
   arms_.start(now_ms);
-  mode_ = Mode::TALKING;
+  mode_ = Mode::STARTING;
 }
 
 void HauntedSkeleton::updateMode(uint32_t now_ms)
@@ -75,9 +71,19 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
         greetVisitor(now_ms);
       }
       break;
+    case Mode::STARTING:
+      if ((now_ms - voice_start_ms_) >= config::VOICE_LATENCY_MS)
+      {
+        mouth_.startSpeech(now_ms);
+        mode_ = Mode::TALKING;
+      }
+      break;
     case Mode::TALKING:
+      // The jaw script lasts exactly as long as the clip, so its end is
+      // the end of the voice.
       if (!mouth_.isSpeaking())
       {
+        mp3_.playLooped(config::MP3_MUSIC_TRACK);
         arms_.goHome(now_ms);
         cooldown_start_ms_ = now_ms;
         mode_ = Mode::COOLDOWN;
@@ -90,16 +96,6 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
         mode_ = Mode::WAITING;
       }
       break;
-  }
-}
-
-void HauntedSkeleton::updateMusic(uint32_t now_ms)
-{
-  if (is_music_paused_ &&
-      ((now_ms - music_paused_at_ms_) >= config::MUSIC_PAUSE_MS))
-  {
-    mp3_.resume();
-    is_music_paused_ = false;
   }
 }
 

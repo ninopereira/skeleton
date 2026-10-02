@@ -19,7 +19,8 @@ namespace skeleton
 /// Mp3Player mp3(Serial);
 /// mp3.begin(9600U);
 /// mp3.setVolume(25U);
-/// mp3.playLooped(1U);
+/// mp3.playLooped(1U);  // background music
+/// mp3.playOnce(2U);    // interrupts it; music restarts via playLooped()
 /// @endcode
 class Mp3Player
 {
@@ -48,11 +49,9 @@ class Mp3Player
   /// @param [in] track 1-based track index on the SD card.
   void playLooped(uint16_t track);
 
-  /// @brief Pauses playback, keeping the current position.
-  void pause();
-
-  /// @brief Resumes playback from where it was paused.
-  void resume();
+  /// @brief Plays a track once, interrupting whatever is playing.
+  /// @param [in] track 1-based track index on the SD card.
+  void playOnce(uint16_t track);
 
  private:
   /// @brief Writes one 8-byte command frame.

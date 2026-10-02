@@ -42,8 +42,13 @@ constexpr uint8_t DETECT_CONFIRM_COUNT = 2U;
 constexpr uint32_t MP3_BAUD = 9600U;
 /// Volume range is 0..30.
 constexpr uint8_t MP3_VOLUME = 25U;
-/// haunted.mp3 must be the first (ideally only) file copied to the card.
+/// Tracks are numbered in the order files were copied to the card: copy
+/// haunted.mp3 first, then voice.mp3.
 constexpr uint16_t MP3_MUSIC_TRACK = 1U;
+constexpr uint16_t MP3_VOICE_TRACK = 2U;
+/// Time from the play command until sound comes out (file seek/decode).
+/// The jaw starts this much later so it stays in sync; tune by eye.
+constexpr uint32_t VOICE_LATENCY_MS = 100U;
 /// @}
 
 /// @name Mouth servo (Bot'n Roll SER1 connector)
@@ -116,8 +121,6 @@ constexpr uint8_t BOOT_BEEP_COUNT = 2U;
 
 /// @name Behaviour timing
 /// @{
-/// How long the music stays paused after a detection.
-constexpr uint32_t MUSIC_PAUSE_MS = 5000U;
 /// Minimum quiet time after the mouth finishes before it may talk again.
 constexpr uint32_t MOUTH_COOLDOWN_MS = 5000U;
 /// @}

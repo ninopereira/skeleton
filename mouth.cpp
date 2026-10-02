@@ -3,37 +3,17 @@
 
 #include "mouth.hpp"
 
+#include "mouth_script.hpp"
+
 namespace skeleton
 {
 namespace
 {
 
-/// @brief One step of the jaw script.
-struct Keyframe
-{
-  uint8_t open_pct;   ///< 0 = closed, 100 = fully open.
-  uint16_t hold_ms;   ///< How long to stay here before the next frame.
-};
-
 constexpr uint8_t SHUT = 0U;
-constexpr uint8_t HALF = 55U;
-constexpr uint8_t WIDE = 100U;
-constexpr uint16_t GAP_MS = 70U;  // brief close between syllables
 
-/// "Who are you? What are you doing here?" -- open on each vowel, close
-/// between syllables, longer pause at the question mark.
-constexpr Keyframe SPEECH[] = {
-    {WIDE, 220U}, {SHUT, GAP_MS},  // Who
-    {HALF, 150U}, {SHUT, GAP_MS},  // are
-    {WIDE, 260U}, {SHUT, 400U},    // you?
-    {WIDE, 200U}, {SHUT, GAP_MS},  // What
-    {HALF, 140U}, {SHUT, GAP_MS},  // are
-    {HALF, 160U}, {SHUT, GAP_MS},  // you
-    {WIDE, 180U}, {SHUT, GAP_MS},  // do-
-    {HALF, 140U}, {SHUT, GAP_MS},  // -ing
-    {WIDE, 380U}, {SHUT, 150U},    // here?
-};
-
+static_assert((sizeof(SPEECH) / sizeof(SPEECH[0])) < 255U,
+              "jaw script too long for an 8-bit frame index");
 constexpr uint8_t SPEECH_LENGTH =
     static_cast<uint8_t>(sizeof(SPEECH) / sizeof(SPEECH[0]));
 
