@@ -22,7 +22,8 @@ namespace skeleton
 /// - When the sonar sees a visitor the voice clip replaces the music and
 ///   the jaw moves in sync with it; the music then restarts from the top
 ///   (the player cannot resume a track after playing another one).
-/// - While the jaw talks the arms flail randomly; afterwards they go down.
+/// - When the jaw starts talking each arm goes up and back down once, one
+///   slightly after the other.
 /// - After the phrase the jaw rests for config::MOUTH_COOLDOWN_MS before a
 ///   new detection can trigger it again.
 class HauntedSkeleton
@@ -52,7 +53,7 @@ class HauntedSkeleton
     COOLDOWN,  ///< Jaw resting before it may talk again.
   };
 
-  /// @brief Starts the voice clip and the arms.
+  /// @brief Starts the voice clip; the jaw and arms follow after latency.
   /// @param [in] now_ms Current time from millis().
   void greetVisitor(uint32_t now_ms);
 

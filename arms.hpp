@@ -31,7 +31,9 @@ class Arms
   /// @brief Stops the motors and zeroes the encoders. Arms must be down.
   void begin();
 
-  /// @brief Starts random flailing on both arms.
+  /// @brief Starts one up-then-down gesture on each arm.
+  ///
+  /// A random arm goes first; the other follows after a random stagger.
   /// @param [in] now_ms Current time from millis().
   void start(uint32_t now_ms);
 
@@ -48,6 +50,8 @@ class Arms
   Arm left_;
   Arm right_;
   uint32_t last_control_ms_;
+  int16_t last_left_rpm_;   ///< Last speed sent, to skip repeats.
+  int16_t last_right_rpm_;
 };
 
 }  // namespace skeleton

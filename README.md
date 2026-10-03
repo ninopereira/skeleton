@@ -4,8 +4,9 @@ Arduino sketch for an animatronic Halloween skeleton built on a
 [Bot'n Roll ONE A+](https://www.botnroll.com) (Arduino Uno compatible).
 
 - Loops spooky background music from an SD card on power-up.
-- When a visitor walks up, the music pauses for 5 s and the jaw "says"
-  *"Who are you? What are you doing here?"* while both arms move randomly.
+- When a visitor walks up, a voice clip asks *"Who are you? What are you
+  doing here?"* with the jaw synced to it, and each arm goes up and back
+  down, one slightly after the other. The music then restarts.
 - The jaw then rests for at least 5 s before it can be triggered again.
 
 ## Hardware
@@ -40,5 +41,5 @@ All pins, angles, distances and timings live in [`config.hpp`](config.hpp).
 | `mp3_player.*` | Catalex MP3 serial protocol |
 | `sonar.*` | HC-SR04 with debounced presence detection |
 | `mouth.*` | Scripted jaw animation |
-| `arm.*`, `arms.*` | Random arm motion with PID speed control |
+| `arm.*`, `arms.*` | Staggered up-and-down arm gesture (PID speed) |
 | `buzzer.*` | Boot beeps |

@@ -55,9 +55,8 @@ void HauntedSkeleton::greetVisitor(uint32_t now_ms)
   mp3_.playOnce(config::MP3_VOICE_TRACK);
   voice_start_ms_ = now_ms;
   // The visitor's arrival time is unpredictable, which makes it a good
-  // seed: the arm pattern differs on every greeting.
+  // seed: which arm leads differs on every greeting.
   randomSeed(micros());
-  arms_.start(now_ms);
   mode_ = Mode::STARTING;
 }
 
@@ -75,6 +74,7 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
       if ((now_ms - voice_start_ms_) >= config::VOICE_LATENCY_MS)
       {
         mouth_.startSpeech(now_ms);
+        arms_.start(now_ms);
         mode_ = Mode::TALKING;
       }
       break;

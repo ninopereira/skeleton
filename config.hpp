@@ -63,31 +63,26 @@ constexpr uint8_t MOUTH_OPEN_DEG = 130U;
 
 /// @name Arms (left motor = left arm, right motor = right arm)
 /// @{
-/// Position 0 is the arm resting down at power-up; this is the top limit.
+/// Position 0 is the arm resting down at power-up; this is the top of the
+/// gesture.
 constexpr int16_t ARM_MAX_COUNTS = 30;
-/// Smallest random move, so every motion is visible.
-constexpr int16_t ARM_MIN_STEP_COUNTS = 4;
-/// Largest random move; keeps gestures small instead of full swings.
-constexpr int16_t ARM_MAX_STEP_COUNTS = 12;
 /// Close enough to the target to stop.
 constexpr int16_t ARM_TOLERANCE_COUNTS = 1;
 /// Within this distance of the target the motor slows down to limit
 /// overshoot.
-constexpr int16_t ARM_SLOW_ZONE_COUNTS = 4;
-/// Each move uses a random cruise speed in this range, in motor RPM.
-/// Speeds go through moveRpm(), so the board's PID holds them even when
-/// they are too slow for open-loop power to overcome friction.
-constexpr int16_t ARM_RPM_MIN = 20;
-constexpr int16_t ARM_RPM_MAX = 40;
-/// Speed inside ARM_SLOW_ZONE_COUNTS.
-constexpr int16_t ARM_SLOW_RPM = 12;
+constexpr int16_t ARM_SLOW_ZONE_COUNTS = 5;
+/// Speeds in motor RPM, sent with moveRpm() so the board's PID holds them.
+constexpr int16_t ARM_UP_RPM = 70;
+constexpr int16_t ARM_DOWN_RPM = 60;
+constexpr int16_t ARM_SLOW_RPM = 25;
 /// Library default maximum motor speed (RobotParams::max_speed_rpm).
 constexpr int16_t MOTOR_MAX_RPM = 300;
-/// Random rest between moves, in [ARM_MIN_PAUSE_MS, ARM_MAX_PAUSE_MS].
-constexpr uint32_t ARM_MIN_PAUSE_MS = 150U;
-constexpr uint32_t ARM_MAX_PAUSE_MS = 600U;
-/// Random delay before each arm starts, so the two are out of sync.
-constexpr uint32_t ARM_MAX_START_DELAY_MS = 400U;
+/// Pause at the top before coming back down.
+constexpr uint32_t ARM_HOLD_TOP_MS = 200U;
+/// The second arm starts this long after the first (random in range), so
+/// they never move in lockstep.
+constexpr uint32_t ARM_STAGGER_MIN_MS = 250U;
+constexpr uint32_t ARM_STAGGER_MAX_MS = 500U;
 /// Give up on a move after this long (blocked arm / missed encoder).
 constexpr uint32_t ARM_MOVE_TIMEOUT_MS = 1500U;
 /// Encoder read and motor command period.
@@ -96,17 +91,17 @@ constexpr uint32_t ARM_CONTROL_PERIOD_MS = 10U;
 constexpr int8_t LEFT_ARM_UP_SIGN = 1;
 constexpr int8_t RIGHT_ARM_UP_SIGN = 1;
 
-static_assert((2 * ARM_MIN_STEP_COUNTS) <= ARM_MAX_COUNTS,
-              "every position must allow a move up or down");
-static_assert(ARM_MIN_STEP_COUNTS <= ARM_MAX_STEP_COUNTS,
-              "minimum step must not exceed maximum step");
-static_assert(ARM_MIN_PAUSE_MS <= ARM_MAX_PAUSE_MS,
-              "minimum pause must not exceed maximum pause");
-static_assert(ARM_TOLERANCE_COUNTS < ARM_MIN_STEP_COUNTS,
-              "tolerance must be smaller than the minimum step");
-static_assert((ARM_SLOW_RPM > 0) && (ARM_RPM_MIN <= ARM_RPM_MAX) &&
-                  (ARM_RPM_MAX <= MOTOR_MAX_RPM),
-              "arm speeds must be within 1..MOTOR_MAX_RPM");
+static_assert(ARM_TOLERANCE_COUNTS < ARM_SLOW_ZONE_COUNTS,
+              "tolerance must be inside the slow zone");
+static_assert(ARM_SLOW_ZONE_COUNTS < ARM_MAX_COUNTS,
+              "slow zone must be smaller than the travel");
+static_assert((ARM_SLOW_RPM > 0) && (ARM_SLOW_RPM <= ARM_UP_RPM) &&
+                  (ARM_SLOW_RPM <= ARM_DOWN_RPM) &&
+                  (ARM_UP_RPM <= MOTOR_MAX_RPM) &&
+                  (ARM_DOWN_RPM <= MOTOR_MAX_RPM),
+              "arm speeds must be within ARM_SLOW_RPM..MOTOR_MAX_RPM");
+static_assert(ARM_STAGGER_MIN_MS <= ARM_STAGGER_MAX_MS,
+              "minimum stagger must not exceed maximum stagger");
 /// @}
 
 /// @name Buzzer (on-board, see the library's Buzzer example)
