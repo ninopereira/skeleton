@@ -63,17 +63,18 @@ constexpr uint8_t MOUTH_OPEN_DEG = 130U;
 
 /// @name Arms (left motor = left arm, right motor = right arm)
 /// @{
-/// Position 0 is the arm resting down at power-up; this is the top of the
-/// gesture.
-constexpr int16_t ARM_MAX_COUNTS = 30;
+/// Encoder counts from the resting position to the top of the gesture.
+constexpr int16_t ARM_MAX_COUNTS = 600;
 /// Close enough to the target to stop.
-constexpr int16_t ARM_TOLERANCE_COUNTS = 1;
+constexpr int16_t ARM_TOLERANCE_COUNTS = 10;
 /// Within this distance of the target the motor slows down to limit
 /// overshoot.
-constexpr int16_t ARM_SLOW_ZONE_COUNTS = 5;
-/// Speeds in motor RPM, sent with moveRpm() so the board's PID holds them.
+constexpr int16_t ARM_SLOW_ZONE_COUNTS = 50;
+/// Speeds in motor RPM, sent with moveRpm() so the board's PID holds them
+/// (negative RPM = reverse).
 constexpr int16_t ARM_UP_RPM = 70;
 constexpr int16_t ARM_DOWN_RPM = 60;
+/// Used inside ARM_SLOW_ZONE_COUNTS to limit overshoot.
 constexpr int16_t ARM_SLOW_RPM = 25;
 /// Library default maximum motor speed (RobotParams::max_speed_rpm).
 constexpr int16_t MOTOR_MAX_RPM = 300;
@@ -83,13 +84,14 @@ constexpr uint32_t ARM_HOLD_TOP_MS = 200U;
 /// they never move in lockstep.
 constexpr uint32_t ARM_STAGGER_MIN_MS = 250U;
 constexpr uint32_t ARM_STAGGER_MAX_MS = 500U;
-/// Give up on a move after this long (blocked arm / missed encoder).
+/// Give up on a move after this long (blocked arm / missed encoder). On
+/// the way down this means the arm is resting on its bottom stop.
 constexpr uint32_t ARM_MOVE_TIMEOUT_MS = 1500U;
 /// Encoder read and motor command period.
 constexpr uint32_t ARM_CONTROL_PERIOD_MS = 10U;
 /// Set to -1 if positive motor speed moves that arm down.
-constexpr int8_t LEFT_ARM_UP_SIGN = 1;
-constexpr int8_t RIGHT_ARM_UP_SIGN = 1;
+constexpr int8_t LEFT_ARM_UP_SIGN = -1;
+constexpr int8_t RIGHT_ARM_UP_SIGN = -1;
 
 static_assert(ARM_TOLERANCE_COUNTS < ARM_SLOW_ZONE_COUNTS,
               "tolerance must be inside the slow zone");

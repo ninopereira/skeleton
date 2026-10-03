@@ -2,7 +2,10 @@
 /// @brief Bench test for the arm motors on the Bot'n Roll ONE A+.
 ///
 /// 1. Shows the battery voltage and the motor-board firmware version.
-/// 2. After a button press, drives both motors briefly up and back down,
+/// 2. Encoder check: a short open-loop moveRAW() pulse (no PID). Counts of
+///    0 on a side mean that motor's encoder is not being read. The encoders
+///    count up in both directions, so the sign tells nothing.
+/// 3. Drives both motors briefly up and back down,
 ///    first open-loop with move() and then PID-controlled with moveRpm(),
 ///    printing the encoder counts of each step on the LCD:
 ///      line 1: "PWR <power>" or "RPM <speed>"
@@ -26,6 +29,10 @@ constexpr int TEST_RPM[] = {20, 40, 80, 160};
 constexpr unsigned long INFO_SHOW_MS = 3000UL;
 constexpr unsigned long MOVE_MS = 400UL;
 constexpr unsigned long RESULT_SHOW_MS = 1500UL;
+/// Gentle open-loop pulse for the encoder check.
+constexpr int CHECK_RAW_POWER = 25;
+constexpr unsigned long CHECK_MS = 250UL;
+constexpr unsigned long VERDICT_SHOW_MS = 4000UL;
 
 BnrOneAPlus one;
 
@@ -59,6 +66,30 @@ void runStep(Drive drive, int value)
   one.lcd1((drive == Drive::POWER) ? "PWR " : "RPM ", value);
   one.lcd2(left_counts, right_counts);
   delay(RESULT_SHOW_MS);
+}
+
+/// @brief Pulses both motors open-loop and shows the encoder counts.
+void checkEncoders()
+{
+  one.resetEncoders();
+  one.moveRAW(CHECK_RAW_POWER, CHECK_RAW_POWER);
+  delay(CHECK_MS);
+  one.stop();
+  int left_counts = 0;
+  int right_counts = 0;
+  one.readAndResetEncoders(left_counts, right_counts);
+
+  // Bring the arms back to where they started.
+  one.moveRAW(-CHECK_RAW_POWER, -CHECK_RAW_POWER);
+  delay(CHECK_MS);
+  one.stop();
+
+  one.lcd1("RAW ", CHECK_RAW_POWER);
+  one.lcd2(left_counts, right_counts);
+  delay(RESULT_SHOW_MS);
+  one.lcd1((left_counts == 0) ? "L NO COUNTS" : "L encoder ok");
+  one.lcd2((right_counts == 0) ? "R NO COUNTS" : "R encoder ok");
+  delay(VERDICT_SHOW_MS);
 }
 
 /// @brief Waits until any button on the robot is pressed.
@@ -100,6 +131,7 @@ void setup()
 
 void loop()
 {
+  checkEncoders();
   for (const int power : TEST_POWER)
   {
     runStep(Drive::POWER, power);   // up

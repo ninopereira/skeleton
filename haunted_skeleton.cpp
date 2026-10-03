@@ -84,7 +84,6 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
       if (!mouth_.isSpeaking())
       {
         mp3_.playLooped(config::MP3_MUSIC_TRACK);
-        arms_.goHome(now_ms);
         cooldown_start_ms_ = now_ms;
         mode_ = Mode::COOLDOWN;
       }

@@ -37,21 +37,35 @@ class Arms
   /// @param [in] now_ms Current time from millis().
   void start(uint32_t now_ms);
 
-  /// @brief Returns both arms to the rest position.
-  /// @param [in] now_ms Current time from millis().
-  void goHome(uint32_t now_ms);
-
   /// @brief Reads encoders and updates motors every control period.
   /// @param [in] now_ms Current time from millis().
   void update(uint32_t now_ms);
 
  private:
+  /// @brief What a motor was last told to do.
+  struct MotorCommand
+  {
+    bool is_stopped;  ///< Power cut (free stop), no PID.
+    int16_t rpm;      ///< PID speed; only meaningful when not stopped.
+  };
+
+  /// @brief Builds the command for one arm.
+  /// @param [in] arm Arm planner.
+  /// @param [in] rpm Speed the planner asked for.
+  /// @return Stopped when the arm rests, otherwise the PID speed.
+  static MotorCommand commandFor(const Arm& arm, int16_t rpm);
+
+  /// @brief Sends the commands to the board if either one changed.
+  /// @param [in] left  Command for the left motor.
+  /// @param [in] right Command for the right motor.
+  void apply(const MotorCommand& left, const MotorCommand& right);
+
   BnrOneAPlus& robot_;
   Arm left_;
   Arm right_;
   uint32_t last_control_ms_;
-  int16_t last_left_rpm_;   ///< Last speed sent, to skip repeats.
-  int16_t last_right_rpm_;
+  MotorCommand last_left_;   ///< Last command sent, to skip repeats.
+  MotorCommand last_right_;
 };
 
 }  // namespace skeleton
