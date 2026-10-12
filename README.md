@@ -25,6 +25,8 @@ Arduino sketch for an animatronic Halloween skeleton built on a
 
 All pins, angles, distances and timings live in [`config.hpp`](config.hpp).
 
+![Wiring diagram](docs/wiring.svg)
+
 ## Setup
 
 1. Install the **BnrOneAPlus** (1.1.2) and **Servo** libraries in the
