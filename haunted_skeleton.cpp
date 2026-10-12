@@ -17,8 +17,9 @@ HauntedSkeleton::HauntedSkeleton()
       mouth_(config::MOUTH_SERVO_PIN,
              config::MOUTH_CLOSED_DEG,
              config::MOUTH_OPEN_DEG),
-      arms_(robot_),
+      arms_(),
       buzzer_(config::BUZZER_PIN),
+      eyes_(config::EYES_LED_PIN),
       mode_(Mode::WAITING),
       cooldown_start_ms_(0U),
       voice_start_ms_(0U)
@@ -29,11 +30,13 @@ void HauntedSkeleton::begin()
 {
   robot_.spiConnect(config::BNR_SPI_SS_PIN);
   robot_.setMinBatteryV(config::MIN_BATTERY_V);
-  arms_.begin();
+  robot_.stop();
 
   buzzer_.begin();
+  eyes_.begin();
   sonar_.begin();
   mouth_.begin();
+  arms_.begin();
 
   mp3_.begin(config::MP3_BAUD);
   mp3_.setVolume(config::MP3_VOLUME);
@@ -52,6 +55,7 @@ void HauntedSkeleton::update(uint32_t now_ms)
 
 void HauntedSkeleton::greetVisitor(uint32_t now_ms)
 {
+  eyes_.turnOn();
   mp3_.playOnce(config::MP3_VOICE_TRACK);
   voice_start_ms_ = now_ms;
   // The visitor's arrival time is unpredictable, which makes it a good
@@ -92,6 +96,7 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
       // Unsigned subtraction stays correct across the millis() wrap.
       if ((now_ms - cooldown_start_ms_) >= config::MOUTH_COOLDOWN_MS)
       {
+        eyes_.turnOff();
         mode_ = Mode::WAITING;
       }
       break;

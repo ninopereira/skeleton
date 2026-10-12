@@ -9,6 +9,7 @@
 
 #include "arms.hpp"
 #include "buzzer.hpp"
+#include "eyes.hpp"
 #include "mouth.hpp"
 #include "mp3_player.hpp"
 #include "sonar.hpp"
@@ -24,6 +25,7 @@ namespace skeleton
 ///   (the player cannot resume a track after playing another one).
 /// - When the jaw starts talking each arm goes up and back down once, one
 ///   slightly after the other.
+/// - The eyes light up on detection and stay lit until the cooldown ends.
 /// - After the phrase the jaw rests for config::MOUTH_COOLDOWN_MS before a
 ///   new detection can trigger it again.
 class HauntedSkeleton
@@ -67,6 +69,7 @@ class HauntedSkeleton
   Mouth mouth_;
   Arms arms_;
   Buzzer buzzer_;
+  Eyes eyes_;
   Mode mode_;
   uint32_t cooldown_start_ms_;
   uint32_t voice_start_ms_;

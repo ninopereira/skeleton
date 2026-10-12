@@ -34,8 +34,8 @@ Mouth::Mouth(uint8_t servo_pin, uint8_t closed_deg, uint8_t open_deg)
 
 void Mouth::begin()
 {
-  // attach() only reports the timer channel it took; with a single servo
-  // it cannot run out of channels.
+  // attach() only reports the timer channel it took; the Uno has 12, far
+  // more than the three servos used here.
   static_cast<void>(servo_.attach(servo_pin_));
   setOpenness(SHUT);
 }

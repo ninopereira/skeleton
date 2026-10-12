@@ -13,7 +13,7 @@ namespace config
 /// @name Bot'n Roll ONE A+
 /// @{
 /// SPI slave-select pin used by the BnrOneAPlus library to talk to the
-/// co-processor (which drives the motors and reads the encoders).
+/// co-processor (which drives the motor outputs, unused here).
 constexpr uint8_t BNR_SPI_SS_PIN = 2U;
 /// Motors are cut below this battery voltage (value from the library
 /// examples).
@@ -61,49 +61,42 @@ constexpr uint8_t MOUTH_CLOSED_DEG = 90U;
 constexpr uint8_t MOUTH_OPEN_DEG = 130U;
 /// @}
 
-/// @name Arms (left motor = left arm, right motor = right arm)
+/// @name Arm servos
 /// @{
-/// Encoder counts from the resting position to the top of the gesture.
-constexpr int16_t ARM_MAX_COUNTS = 600;
-/// Close enough to the target to stop.
-constexpr int16_t ARM_TOLERANCE_COUNTS = 10;
-/// Within this distance of the target the motor slows down to limit
-/// overshoot.
-constexpr int16_t ARM_SLOW_ZONE_COUNTS = 50;
-/// Speeds in motor RPM, sent with moveRpm() so the board's PID holds them
-/// (negative RPM = reverse).
-constexpr int16_t ARM_UP_RPM = 70;
-constexpr int16_t ARM_DOWN_RPM = 60;
-/// Used inside ARM_SLOW_ZONE_COUNTS to limit overshoot.
-constexpr int16_t ARM_SLOW_RPM = 25;
-/// Library default maximum motor speed (RobotParams::max_speed_rpm).
-constexpr int16_t MOTOR_MAX_RPM = 300;
+/// The Servo library drives any digital pin (no hardware PWM needed), up
+/// to 12 servos on the Uno. SER2 is pin 5 (see the library's PanTilt
+/// example); the right arm needs another free digital pin.
+constexpr uint8_t LEFT_ARM_SERVO_PIN = 5U;
+constexpr uint8_t RIGHT_ARM_SERVO_PIN = 4U;
+/// Calibrate these on the real arms. The servos face opposite ways, so
+/// the right arm's angles are mirrored (up may be smaller than down).
+constexpr uint8_t LEFT_ARM_DOWN_DEG = 20U;
+constexpr uint8_t LEFT_ARM_UP_DEG = 110U;
+constexpr uint8_t RIGHT_ARM_DOWN_DEG = 160U;
+constexpr uint8_t RIGHT_ARM_UP_DEG = 70U;
+/// Sweep times; longer is slower and smoother.
+constexpr uint32_t ARM_RAISE_MS = 400U;
+constexpr uint32_t ARM_LOWER_MS = 600U;
 /// Pause at the top before coming back down.
 constexpr uint32_t ARM_HOLD_TOP_MS = 200U;
 /// The second arm starts this long after the first (random in range), so
 /// they never move in lockstep.
 constexpr uint32_t ARM_STAGGER_MIN_MS = 250U;
 constexpr uint32_t ARM_STAGGER_MAX_MS = 500U;
-/// Give up on a move after this long (blocked arm / missed encoder). On
-/// the way down this means the arm is resting on its bottom stop.
-constexpr uint32_t ARM_MOVE_TIMEOUT_MS = 1500U;
-/// Encoder read and motor command period.
-constexpr uint32_t ARM_CONTROL_PERIOD_MS = 10U;
-/// Set to -1 if positive motor speed moves that arm down.
-constexpr int8_t LEFT_ARM_UP_SIGN = -1;
-constexpr int8_t RIGHT_ARM_UP_SIGN = -1;
+/// Servo angle update period; matches the 20 ms servo pulse frame.
+constexpr uint32_t ARM_UPDATE_PERIOD_MS = 20U;
 
-static_assert(ARM_TOLERANCE_COUNTS < ARM_SLOW_ZONE_COUNTS,
-              "tolerance must be inside the slow zone");
-static_assert(ARM_SLOW_ZONE_COUNTS < ARM_MAX_COUNTS,
-              "slow zone must be smaller than the travel");
-static_assert((ARM_SLOW_RPM > 0) && (ARM_SLOW_RPM <= ARM_UP_RPM) &&
-                  (ARM_SLOW_RPM <= ARM_DOWN_RPM) &&
-                  (ARM_UP_RPM <= MOTOR_MAX_RPM) &&
-                  (ARM_DOWN_RPM <= MOTOR_MAX_RPM),
-              "arm speeds must be within ARM_SLOW_RPM..MOTOR_MAX_RPM");
+static_assert((LEFT_ARM_DOWN_DEG <= 180U) && (LEFT_ARM_UP_DEG <= 180U) &&
+                  (RIGHT_ARM_DOWN_DEG <= 180U) && (RIGHT_ARM_UP_DEG <= 180U),
+              "servo angles must be within 0..180");
+static_assert((ARM_RAISE_MS > 0U) && (ARM_LOWER_MS > 0U),
+              "sweep times must be non-zero");
 static_assert(ARM_STAGGER_MIN_MS <= ARM_STAGGER_MAX_MS,
               "minimum stagger must not exceed maximum stagger");
+static_assert((LEFT_ARM_SERVO_PIN != RIGHT_ARM_SERVO_PIN) &&
+                  (LEFT_ARM_SERVO_PIN != MOUTH_SERVO_PIN) &&
+                  (RIGHT_ARM_SERVO_PIN != MOUTH_SERVO_PIN),
+              "each servo needs its own pin");
 /// @}
 
 /// @name Buzzer (on-board, see the library's Buzzer example)
@@ -114,6 +107,12 @@ constexpr uint32_t BEEP_ON_MS = 120U;
 constexpr uint32_t BEEP_OFF_MS = 120U;
 /// Beeps played once at boot, right before the music starts.
 constexpr uint8_t BOOT_BEEP_COUNT = 2U;
+/// @}
+
+/// @name Eye LEDs
+/// @{
+/// On from the moment a visitor is detected until the cooldown ends.
+constexpr uint8_t EYES_LED_PIN = 8U;
 /// @}
 
 /// @name Behaviour timing
