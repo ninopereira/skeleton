@@ -43,9 +43,18 @@ constexpr uint32_t MP3_BAUD = 9600U;
 /// Volume range is 0..30.
 constexpr uint8_t MP3_VOLUME = 25U;
 /// Tracks are numbered in the order files were copied to the card: copy
-/// haunted.mp3 first, then voice.mp3.
-constexpr uint16_t MP3_MUSIC_TRACK = 1U;
-constexpr uint16_t MP3_VOICE_TRACK = 2U;
+/// voice.mp3 first, then the songs in the order they should play.
+constexpr uint16_t MP3_VOICE_TRACK = 1U;
+constexpr uint16_t MP3_FIRST_SONG_TRACK = 2U;
+constexpr uint16_t MP3_SONG_COUNT = 42U;
+/// "Track finished" reports arriving this soon after a song starts are
+/// ignored: they belong to the voice clip or are duplicates.
+constexpr uint32_t MP3_FINISH_GUARD_MS = 2000U;
+
+static_assert(MP3_SONG_COUNT > 0U, "the playlist needs at least one song");
+static_assert((MP3_VOICE_TRACK < MP3_FIRST_SONG_TRACK) ||
+                  (MP3_VOICE_TRACK >= (MP3_FIRST_SONG_TRACK + MP3_SONG_COUNT)),
+              "the voice track must not be part of the playlist");
 /// Time from the play command until sound comes out (file seek/decode).
 /// The jaw starts this much later so it stays in sync; tune by eye.
 constexpr uint32_t VOICE_LATENCY_MS = 100U;

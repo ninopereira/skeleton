@@ -3,10 +3,12 @@
 Arduino sketch for an animatronic Halloween skeleton built on a
 [Bot'n Roll ONE A+](https://www.botnroll.com) (Arduino Uno compatible).
 
-- Loops spooky background music from an SD card on power-up.
+- Plays the songs on the SD card in order on power-up, looping back to
+  the first song after the last one.
 - When a visitor walks up, a voice clip asks *"Who are you? What are you
   doing here?"* with the jaw synced to it, and each arm goes up and back
-  down, one slightly after the other. The music then restarts.
+  down, one slightly after the other. The music then continues with the
+  song after the interrupted one.
 - The jaw then rests for at least 5 s before it can be triggered again.
 
 ## Hardware
@@ -27,10 +29,15 @@ All pins, angles, distances and timings live in [`config.hpp`](config.hpp).
 
 1. Install the **BnrOneAPlus** (1.1.2) and **Servo** libraries in the
    Arduino IDE.
-2. Copy `haunted.mp3` as the first (ideally only) file on a FAT32 SD card.
+2. Format a FAT32 SD card and copy `voice.mp3` onto it first, then the
+   songs one at a time in the order they should play (the module numbers
+   tracks by copy order). Set `MP3_SONG_COUNT` in `config.hpp` to the
+   number of songs.
 3. Power the servos well: three servos (two lifting arms) can draw more
    current than the board's 5 V regulator supplies.
-4. Disconnect the MP3 module's TX wire (board pin 0) while uploading.
+4. Disconnect the MP3 module's TX wire (board pin 0) while uploading, and
+   reconnect it afterwards: the sketch listens on it to know when a song
+   ends.
 5. Calibrate `MOUTH_CLOSED_DEG` / `MOUTH_OPEN_DEG` and the arm angles and
    sweep times in `config.hpp` for your build.
 

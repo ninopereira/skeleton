@@ -22,7 +22,9 @@ HauntedSkeleton::HauntedSkeleton()
       eyes_(config::EYES_LED_PIN),
       mode_(Mode::WAITING),
       cooldown_start_ms_(0U),
-      voice_start_ms_(0U)
+      voice_start_ms_(0U),
+      song_index_(0U),
+      song_start_ms_(0U)
 {
 }
 
@@ -42,7 +44,8 @@ void HauntedSkeleton::begin()
   mp3_.setVolume(config::MP3_VOLUME);
   // Boot signal; placed last so the music follows the beeps immediately.
   buzzer_.beep(config::BOOT_BEEP_COUNT);
-  mp3_.playLooped(config::MP3_MUSIC_TRACK);
+  mp3_.playOnce(config::MP3_FIRST_SONG_TRACK);
+  song_start_ms_ = millis();
 }
 
 void HauntedSkeleton::update(uint32_t now_ms)
@@ -50,7 +53,36 @@ void HauntedSkeleton::update(uint32_t now_ms)
   sonar_.update(now_ms);
   mouth_.update(now_ms);
   arms_.update(now_ms);
+  updateMusic(now_ms);
   updateMode(now_ms);
+}
+
+void HauntedSkeleton::playNextSong(uint32_t now_ms)
+{
+  ++song_index_;
+  if (song_index_ >= config::MP3_SONG_COUNT)
+  {
+    song_index_ = 0U;
+  }
+  mp3_.playOnce(
+      static_cast<uint16_t>(config::MP3_FIRST_SONG_TRACK + song_index_));
+  song_start_ms_ = now_ms;
+}
+
+void HauntedSkeleton::updateMusic(uint32_t now_ms)
+{
+  // Poll in every mode so the receive buffer is drained during the voice.
+  const bool is_track_finished = mp3_.pollTrackFinished();
+  // While talking, a finish report is the voice's; the TALKING state
+  // restarts the music itself when the jaw script ends.
+  const bool is_voice_active =
+      (mode_ == Mode::STARTING) || (mode_ == Mode::TALKING);
+  const bool is_song_settled =
+      (now_ms - song_start_ms_) >= config::MP3_FINISH_GUARD_MS;
+  if (is_track_finished && !is_voice_active && is_song_settled)
+  {
+    playNextSong(now_ms);
+  }
 }
 
 void HauntedSkeleton::greetVisitor(uint32_t now_ms)
@@ -87,7 +119,7 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
       // the end of the voice.
       if (!mouth_.isSpeaking())
       {
-        mp3_.playLooped(config::MP3_MUSIC_TRACK);
+        playNextSong(now_ms);
         cooldown_start_ms_ = now_ms;
         mode_ = Mode::COOLDOWN;
       }
