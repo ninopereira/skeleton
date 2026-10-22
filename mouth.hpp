@@ -1,5 +1,5 @@
 /// @file mouth.hpp
-/// @brief Non-blocking jaw animation driven by the Bot'n Roll SER1 servo.
+/// @brief Non-blocking jaw animation driven by a servo.
 
 #pragma once
 
@@ -17,7 +17,7 @@ namespace skeleton
 /// speech. Call update() every loop iteration; it never blocks.
 ///
 /// @code{.cpp}
-/// Mouth mouth(3U, 90U, 130U);
+/// Mouth mouth(9U, 90U, 130U);
 /// mouth.begin();
 /// mouth.startSpeech(millis());
 /// while (mouth.isSpeaking()) { mouth.update(millis()); }

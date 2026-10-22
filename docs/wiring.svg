@@ -3,6 +3,7 @@
   <style>
     .w { fill: none; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
     .v5 { stroke: #d6336c; }
+    .v3 { stroke: #0b7285; }
     .gnd { stroke: #343a40; }
     .ser { stroke: #1c7ed6; }
     .son { stroke: #2b8a3e; }
@@ -24,33 +25,28 @@
   <text x="40" y="50" font-size="24" font-weight="bold" fill="#212529">Haunted Skeleton — wiring</text>
   <text x="40" y="76" class="t">Pin numbers from config.hpp. A dot joins wires; wires that cross without a dot are not connected.</text>
 
-  <!-- ===== Bot'n Roll ONE A+ ===== -->
+  <!-- ===== Arduino Uno ===== -->
   <rect x="60" y="110" width="340" height="590" rx="10" fill="#1f6f43" stroke="#0b3d22" stroke-width="2"/>
-  <text x="80" y="148" font-size="19" font-weight="bold" fill="#ffffff">Bot'n Roll ONE A+</text>
-  <text x="80" y="170" class="pcb">Arduino Uno compatible</text>
-
-  <text x="80" y="250" class="pcb" font-weight="bold">Used on the board:</text>
-  <text x="80" y="272" class="pcb">D2 — SPI select (co-processor)</text>
-  <text x="80" y="292" class="pcb">D11–D13 — SPI bus</text>
-  <text x="80" y="312" class="pcb">D9 — buzzer (boot beeps)</text>
-  <text x="80" y="340" class="pcb">Leave these unconnected.</text>
+  <text x="80" y="148" font-size="19" font-weight="bold" fill="#ffffff">Arduino Uno</text>
 
   <!-- header pads + labels -->
   <g class="pcb" text-anchor="end">
-    <text x="384" y="174">D0 (RX)</text>
-    <text x="384" y="209">D1 (TX)</text>
+    <text x="384" y="174">D3</text>
+    <text x="384" y="209">D2</text>
+    <text x="384" y="284">3V3</text>
     <text x="384" y="349">D6</text>
     <text x="384" y="399">D7</text>
     <text x="384" y="479">D8</text>
     <text x="384" y="524">5V</text>
     <text x="384" y="554">GND</text>
-    <text x="384" y="594">D4</text>
-    <text x="384" y="624">D5 · SER2</text>
-    <text x="384" y="654">D3 · SER1</text>
+    <text x="384" y="594">D11</text>
+    <text x="384" y="624">D10</text>
+    <text x="384" y="654">D9</text>
   </g>
   <g fill="#ffd43b" stroke="#5c4800" stroke-width="1">
     <rect x="392" y="164" width="16" height="12"/>
     <rect x="392" y="199" width="16" height="12"/>
+    <rect x="392" y="274" width="16" height="12"/>
     <rect x="392" y="339" width="16" height="12"/>
     <rect x="392" y="389" width="16" height="12"/>
     <rect x="392" y="469" width="16" height="12"/>
@@ -62,24 +58,24 @@
     <rect x="112" y="692" width="16" height="16"/>
     <rect x="332" y="692" width="16" height="16"/>
   </g>
-  <text x="120" y="684" class="pcb" text-anchor="middle">BAT</text>
+  <text x="120" y="684" class="pcb" text-anchor="middle">VIN</text>
   <text x="340" y="684" class="pcb" text-anchor="middle">GND</text>
 
-  <!-- ===== Catalex MP3 player ===== -->
+  <!-- ===== DFPlayer Mini ===== -->
   <rect x="700" y="135" width="180" height="105" rx="6" class="box"/>
-  <text x="790" y="190" class="h" text-anchor="middle">Catalex MP3</text>
-  <text x="790" y="208" class="t" text-anchor="middle">Serial player v1.0</text>
+  <text x="790" y="190" class="h" text-anchor="middle">DFPlayer Mini</text>
+  <text x="790" y="208" class="t" text-anchor="middle">MP3 player</text>
   <text x="790" y="225" class="t" text-anchor="middle">microSD: voice + songs</text>
   <text x="708" y="166" class="p">TX</text>
   <text x="708" y="201" class="p">RX</text>
-  <text x="872" y="166" class="p" text-anchor="end">VCC</text>
-  <text x="872" y="201" class="p" text-anchor="end">GND</text>
+  <text x="872" y="166" class="p" text-anchor="end">GND</text>
+  <text x="872" y="201" class="p" text-anchor="end">VCC</text>
 
   <!-- speaker -->
-  <path d="M790 135 V112" class="w gnd"/>
+  <path d="M783 135 V112 M799 135 V106" class="w gnd" stroke-width="2"/>
   <rect x="775" y="88" width="16" height="24" fill="#495057"/>
   <path d="M791 88 L812 74 V126 L791 112 Z" fill="#868e96" stroke="#495057"/>
-  <text x="826" y="104" class="t">Speaker (3.5 mm jack)</text>
+  <text x="826" y="104" class="t">Speaker (SPK1 / SPK2)</text>
 
   <!-- ===== HC-SR04 ===== -->
   <rect x="700" y="310" width="180" height="105" rx="6" class="box"/>
@@ -125,8 +121,8 @@
   <text x="270" y="829" class="t" text-anchor="middle">≥ 3 A</text>
 
   <rect x="50" y="870" width="140" height="60" rx="6" class="box"/>
-  <text x="120" y="896" class="h" text-anchor="middle">Robot battery</text>
-  <text x="120" y="914" class="t" text-anchor="middle">≥ 10.5 V</text>
+  <text x="120" y="896" class="h" text-anchor="middle">Battery</text>
+  <text x="120" y="914" class="t" text-anchor="middle">7–12 V</text>
 
   <!-- ===== Wires ===== -->
   <!-- Battery to board and servo supply -->
@@ -134,11 +130,23 @@
   <path d="M190 900 H270 V850" class="w bat"/>
   <text x="128" y="790" class="wl">power in</text>
 
-  <!-- MP3 serial -->
+  <!-- MP3 serial (software serial) -->
   <path d="M408 170 H700" class="w ser"/>
-  <path d="M408 205 H700" class="w ser"/>
-  <text x="555" y="163" class="wl" text-anchor="middle">D0 (RX) ← MP3 TX · unplug while uploading</text>
-  <text x="555" y="198" class="wl" text-anchor="middle">D1 (TX) → MP3 RX</text>
+  <path d="M408 205 H520 M556 205 H700" class="w ser"/>
+  <rect x="520" y="200" width="36" height="10" fill="#ffffff" stroke="#212529" stroke-width="1.5"/>
+  <path d="M620 205 V215 M620 251 V258" class="w ser"/>
+  <rect x="615" y="215" width="10" height="36" fill="#ffffff" stroke="#212529" stroke-width="1.5"/>
+  <path d="M606 258 H634 M611 264 H629 M616 270 H624" stroke="#343a40" stroke-width="2"/>
+  <circle cx="620" cy="205" r="5" fill="#1c7ed6" class="dot"/>
+  <text x="555" y="163" class="wl" text-anchor="middle">D3 (RX) ← MP3 TX</text>
+  <text x="470" y="198" class="wl" text-anchor="middle">D2 (TX) → MP3 RX</text>
+  <text x="538" y="226" class="wl" text-anchor="middle">680 Ω</text>
+  <text x="632" y="237" class="wl">1 kΩ</text>
+  <text x="640" y="268" class="wl">GND</text>
+
+  <!-- DFPlayer supply: 3.3 V only -->
+  <path d="M408 280 H910 V205 H880" class="w v3"/>
+  <text x="490" y="273" class="wl" text-anchor="middle">3V3 → MP3 VCC (3.3 V only)</text>
 
   <!-- Sonar -->
   <path d="M408 345 H700" class="w son"/>
@@ -151,13 +159,11 @@
   <text x="555" y="468" class="wl" text-anchor="middle">D8 → eyes (HIGH = on)</text>
 
   <!-- Logic 5 V bus -->
-  <path d="M408 520 H940 V170 H880" class="w v5"/>
-  <path d="M940 345 H880" class="w v5"/>
-  <circle cx="940" cy="345" r="5" fill="#d6336c" class="dot"/>
+  <path d="M408 520 H940 V345 H880" class="w v5"/>
   <text x="555" y="513" class="wl" text-anchor="middle">5 V from board regulator (logic only)</text>
 
   <!-- GND bus -->
-  <path d="M408 550 H970 V205 H880" class="w gnd"/>
+  <path d="M408 550 H970 V170 H880" class="w gnd"/>
   <path d="M970 395 H880 M970 475 H880" class="w gnd"/>
   <circle cx="970" cy="395" r="5" fill="#343a40" class="dot"/>
   <circle cx="970" cy="475" r="5" fill="#343a40" class="dot"/>
@@ -199,6 +205,7 @@
       <line x1="0" y1="88" x2="28" y2="88" class="w srv"/><text x="36" y="92">Servo signal</text>
 
       <line x1="150" y1="22" x2="178" y2="22" class="w v5"/><text x="186" y="26">Logic 5 V</text>
+      <line x1="0" y1="110" x2="28" y2="110" class="w v3"/><text x="36" y="114">MP3 3.3 V</text>
       <line x1="150" y1="44" x2="178" y2="44" class="w vs"/><text x="186" y="48">Servo 5–6 V</text>
       <line x1="150" y1="66" x2="178" y2="66" class="w gnd"/><text x="186" y="70">GND</text>
       <line x1="150" y1="88" x2="178" y2="88" class="w bat"/><text x="186" y="92">Battery</text>
@@ -206,7 +213,9 @@
       <text x="300" y="26">• Servos draw too much for the board's</text>
       <text x="300" y="42">  5 V regulator: give them their own supply.</text>
       <text x="300" y="62">• Servo supply GND must join board GND.</text>
-      <text x="300" y="82">• Unplug MP3 TX from D0 while uploading.</text>
+      <text x="300" y="82">• DFPlayer VCC to 3V3, never 5 V.</text>
+      <text x="300" y="102">• 680 Ω + 1 kΩ divider drops D2's 5 V</text>
+      <text x="300" y="118">  to ~3 V on the MP3 RX pin.</text>
     </g>
   </g>
 </svg>

@@ -11,14 +11,12 @@ namespace skeleton
 {
 
 HauntedSkeleton::HauntedSkeleton()
-    : robot_(),
-      mp3_(Serial),
+    : mp3_(config::MP3_RX_PIN, config::MP3_TX_PIN),
       sonar_(config::SONAR_TRIG_PIN, config::SONAR_ECHO_PIN),
       mouth_(config::MOUTH_SERVO_PIN,
              config::MOUTH_CLOSED_DEG,
              config::MOUTH_OPEN_DEG),
       arms_(),
-      buzzer_(config::BUZZER_PIN),
       eyes_(config::EYES_LED_PIN),
       mode_(Mode::WAITING),
       cooldown_start_ms_(0U),
@@ -30,21 +28,16 @@ HauntedSkeleton::HauntedSkeleton()
 
 void HauntedSkeleton::begin()
 {
-  robot_.spiConnect(config::BNR_SPI_SS_PIN);
-  robot_.setMinBatteryV(config::MIN_BATTERY_V);
-  robot_.stop();
-
-  buzzer_.begin();
   eyes_.begin();
   sonar_.begin();
   mouth_.begin();
   arms_.begin();
 
-  mp3_.begin(config::MP3_BAUD);
-  mp3_.setVolume(config::MP3_VOLUME);
-  // Boot signal; placed last so the music follows the beeps immediately.
-  buzzer_.beep(config::BOOT_BEEP_COUNT);
-  mp3_.playOnce(config::MP3_FIRST_SONG_TRACK);
+  if (!mp3_.begin(config::MP3_VOLUME))
+  {
+    signalMp3Error();
+  }
+  mp3_.play(config::MP3_FIRST_SONG_TRACK);
   song_start_ms_ = millis();
 }
 
@@ -57,6 +50,18 @@ void HauntedSkeleton::update(uint32_t now_ms)
   updateMode(now_ms);
 }
 
+void HauntedSkeleton::signalMp3Error()
+{
+  // Blocking is fine here: it only runs once, from begin().
+  for (uint8_t i = 0U; i < config::MP3_ERROR_BLINK_COUNT; ++i)
+  {
+    eyes_.turnOn();
+    delay(config::MP3_ERROR_BLINK_MS);
+    eyes_.turnOff();
+    delay(config::MP3_ERROR_BLINK_MS);
+  }
+}
+
 void HauntedSkeleton::playNextSong(uint32_t now_ms)
 {
   ++song_index_;
@@ -64,7 +69,7 @@ void HauntedSkeleton::playNextSong(uint32_t now_ms)
   {
     song_index_ = 0U;
   }
-  mp3_.playOnce(
+  mp3_.play(
       static_cast<uint16_t>(config::MP3_FIRST_SONG_TRACK + song_index_));
   song_start_ms_ = now_ms;
 }
@@ -88,7 +93,7 @@ void HauntedSkeleton::updateMusic(uint32_t now_ms)
 void HauntedSkeleton::greetVisitor(uint32_t now_ms)
 {
   eyes_.turnOn();
-  mp3_.playOnce(config::MP3_VOICE_TRACK);
+  mp3_.play(config::MP3_VOICE_TRACK);
   voice_start_ms_ = now_ms;
   // The visitor's arrival time is unpredictable, which makes it a good
   // seed: which arm leads differs on every greeting.

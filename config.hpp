@@ -10,16 +10,6 @@ namespace skeleton
 namespace config
 {
 
-/// @name Bot'n Roll ONE A+
-/// @{
-/// SPI slave-select pin used by the BnrOneAPlus library to talk to the
-/// co-processor (which drives the motor outputs, unused here).
-constexpr uint8_t BNR_SPI_SS_PIN = 2U;
-/// Motors are cut below this battery voltage (value from the library
-/// examples).
-constexpr float MIN_BATTERY_V = 10.5F;
-/// @}
-
 /// @name HC-SR04 sonar
 /// @{
 constexpr uint8_t SONAR_TRIG_PIN = 7U;
@@ -37,11 +27,15 @@ constexpr int16_t DETECT_MAX_CM = 80;
 constexpr uint8_t DETECT_CONFIRM_COUNT = 2U;
 /// @}
 
-/// @name Catalex serial MP3 player (on hardware Serial, pins 0/1)
+/// @name DFPlayer Mini MP3 player (software serial)
 /// @{
-constexpr uint32_t MP3_BAUD = 9600U;
-/// Volume range is 0..30.
+/// Board pin wired to the module's TX.
+constexpr uint8_t MP3_RX_PIN = 3U;
+/// Board pin wired to the module's RX through a 680 Ohm + 1 kOhm divider
+/// (5 V to ~3 V; the module runs on 3.3 V).
+constexpr uint8_t MP3_TX_PIN = 2U;
 constexpr uint8_t MP3_VOLUME = 25U;
+static_assert(MP3_VOLUME <= 30U, "DFPlayer volume range is 0..30");
 /// Tracks are numbered in the order files were copied to the card: copy
 /// voice.mp3 first, then the songs in the order they should play.
 constexpr uint16_t MP3_VOICE_TRACK = 1U;
@@ -60,11 +54,9 @@ static_assert((MP3_VOICE_TRACK < MP3_FIRST_SONG_TRACK) ||
 constexpr uint32_t VOICE_LATENCY_MS = 100U;
 /// @}
 
-/// @name Mouth servo (Bot'n Roll SER1 connector)
+/// @name Mouth servo
 /// @{
-/// SER1 is wired straight to an Arduino pin on the ONE A+ (see the
-/// library's PanTilt example).
-constexpr uint8_t MOUTH_SERVO_PIN = 3U;
+constexpr uint8_t MOUTH_SERVO_PIN = 9U;
 /// Calibrate these on the real jaw.
 constexpr uint8_t MOUTH_CLOSED_DEG = 90U;
 constexpr uint8_t MOUTH_OPEN_DEG = 130U;
@@ -72,11 +64,8 @@ constexpr uint8_t MOUTH_OPEN_DEG = 130U;
 
 /// @name Arm servos
 /// @{
-/// The Servo library drives any digital pin (no hardware PWM needed), up
-/// to 12 servos on the Uno. SER2 is pin 5 (see the library's PanTilt
-/// example); the right arm needs another free digital pin.
-constexpr uint8_t LEFT_ARM_SERVO_PIN = 5U;
-constexpr uint8_t RIGHT_ARM_SERVO_PIN = 4U;
+constexpr uint8_t LEFT_ARM_SERVO_PIN = 10U;
+constexpr uint8_t RIGHT_ARM_SERVO_PIN = 11U;
 /// Calibrate these on the real arms. The servos face opposite ways, so
 /// the right arm's angles are mirrored (up may be smaller than down).
 constexpr uint8_t LEFT_ARM_DOWN_DEG = 20U;
@@ -108,20 +97,13 @@ static_assert((LEFT_ARM_SERVO_PIN != RIGHT_ARM_SERVO_PIN) &&
               "each servo needs its own pin");
 /// @}
 
-/// @name Buzzer (on-board, see the library's Buzzer example)
-/// @{
-constexpr uint8_t BUZZER_PIN = 9U;
-constexpr uint16_t BEEP_FREQUENCY_HZ = 2000U;
-constexpr uint32_t BEEP_ON_MS = 120U;
-constexpr uint32_t BEEP_OFF_MS = 120U;
-/// Beeps played once at boot, right before the music starts.
-constexpr uint8_t BOOT_BEEP_COUNT = 2U;
-/// @}
-
 /// @name Eye LEDs
 /// @{
 /// On from the moment a visitor is detected until the cooldown ends.
 constexpr uint8_t EYES_LED_PIN = 8U;
+/// Blinks at boot when the MP3 player or its SD card does not answer.
+constexpr uint8_t MP3_ERROR_BLINK_COUNT = 5U;
+constexpr uint32_t MP3_ERROR_BLINK_MS = 150U;
 /// @}
 
 /// @name Behaviour timing

@@ -5,10 +5,7 @@
 
 #include <stdint.h>
 
-#include <BnrOneAPlus.h>
-
 #include "arms.hpp"
-#include "buzzer.hpp"
 #include "eyes.hpp"
 #include "mouth.hpp"
 #include "mp3_player.hpp"
@@ -61,6 +58,9 @@ class HauntedSkeleton
   /// @param [in] now_ms Current time from millis().
   void greetVisitor(uint32_t now_ms);
 
+  /// @brief Blinks the eyes to report that the MP3 player is missing.
+  void signalMp3Error();
+
   /// @brief Moves to the next song in the playlist and plays it.
   /// @param [in] now_ms Current time from millis().
   void playNextSong(uint32_t now_ms);
@@ -73,12 +73,10 @@ class HauntedSkeleton
   /// @param [in] now_ms Current time from millis().
   void updateMode(uint32_t now_ms);
 
-  BnrOneAPlus robot_;
   Mp3Player mp3_;
   Sonar sonar_;
   Mouth mouth_;
   Arms arms_;
-  Buzzer buzzer_;
   Eyes eyes_;
   Mode mode_;
   uint32_t cooldown_start_ms_;
