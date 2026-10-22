@@ -17,7 +17,7 @@ Arduino Uno.
 |---|---|
 | VL53L0X time-of-flight sensor | **VIN on 3V3, not 5V**; GND → GND, SDA → A4, SCL → A5 |
 | *or* HC-SR04 sonar | trig pin 7, echo pin 6 |
-| DFPlayer Mini | **VCC on 3V3, not 5V**; module TX → pin 3; pin 2 → 680 Ω → module RX, 1 kΩ from module RX to GND |
+| DFPlayer Mini | **VCC on 3V3, not 5V**; module TX → pin 3; pin 2 → 680 Ω → module RX, 1 kΩ from module RX to GND; module BUSY → A0 |
 | Jaw servo | pin 9 |
 | Arm servos | left: pin 10, right: pin 11 |
 | Eye LEDs | pin 8 |

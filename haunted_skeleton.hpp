@@ -88,6 +88,12 @@ class HauntedSkeleton
   /// @param [in] now_ms Current time from millis().
   void playQueuedSong(uint32_t now_ms);
 
+  /// @brief Tracks the module's BUSY output.
+  /// @param [in] now_ms Current time from millis().
+  /// @retval true  Nothing has played for config::MP3_STOPPED_MS.
+  /// @retval false A song is playing, or only just went quiet.
+  bool hasSongStopped(uint32_t now_ms);
+
   /// @brief Queues the next song when one ends, or resends a rejected
   ///        play command.
   /// @param [in] events Reports from the module.
@@ -129,6 +135,8 @@ class HauntedSkeleton
   bool is_song_queued_;
   /// Play commands resent for the song at song_index_.
   uint8_t song_retry_count_;
+  /// When the module last reported, through BUSY, that it was playing.
+  uint32_t last_busy_ms_;
   /// When the sensor reading was last printed.
   uint32_t last_print_ms_;
 };

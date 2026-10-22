@@ -14,14 +14,16 @@ namespace skeleton
 /// @brief Plays tracks on a DFPlayer Mini over a software serial port.
 ///
 /// Tracks are addressed by index in the order they were copied to the SD
-/// card. The module reports the natural end of a track on its TX line.
+/// card. Clone modules do not reliably report the end of a track on their
+/// TX line, so the module's BUSY output (low while playing) is read too.
 ///
 /// @code{.cpp}
-/// Mp3Player mp3(3U, 2U);
+/// Mp3Player mp3(3U, 2U, 14U);
 /// mp3.begin(25U);
 /// mp3.play(1U);
 /// // in loop():
-/// if (mp3.poll().is_track_finished)
+/// static_cast<void>(mp3.poll());
+/// if (!mp3.isPlaying())
 /// {
 ///   mp3.play(2U);
 /// }
@@ -29,10 +31,12 @@ namespace skeleton
 class Mp3Player
 {
  public:
-  /// @brief Binds the player to two digital pins.
-  /// @param [in] rx_pin Board pin wired to the module's TX.
-  /// @param [in] tx_pin Board pin wired to the module's RX.
-  Mp3Player(uint8_t rx_pin, uint8_t tx_pin);
+  /// @brief Binds the player to its pins.
+  /// @param [in] rx_pin   Board pin wired to the module's TX.
+  /// @param [in] tx_pin   Board pin wired to the module's RX.
+  /// @param [in] busy_pin Analog-capable board pin wired to the module's
+  ///                      BUSY output.
+  Mp3Player(uint8_t rx_pin, uint8_t tx_pin, uint8_t busy_pin);
 
   /// @brief What the module reported since the last poll().
   struct Events
@@ -79,9 +83,19 @@ class Mp3Player
   /// @return Track-finished and error reports received since the last call.
   Events poll();
 
+  /// @brief Reads the module's BUSY output.
+  ///
+  /// It takes a few tens of milliseconds after a play command to go
+  /// active, and blips inactive when an advert starts and ends.
+  ///
+  /// @retval true  The module is producing sound.
+  /// @retval false The module is stopped or paused.
+  bool isPlaying() const;
+
  private:
   SoftwareSerial serial_;
   DFRobotDFPlayerMini player_;
+  uint8_t busy_pin_;
 };
 
 }  // namespace skeleton

@@ -75,6 +75,9 @@ constexpr uint8_t MP3_RX_PIN = 3U;
 /// Board pin wired to the module's RX through a 680 Ohm + 1 kOhm divider
 /// (5 V to ~3 V; the module runs on 3.3 V).
 constexpr uint8_t MP3_TX_PIN = 2U;
+/// Board pin wired to the module's BUSY output (14 is A0 on the Uno). It
+/// is read with analogRead(), so it must be one of A0..A5.
+constexpr uint8_t MP3_BUSY_PIN = 14U;
 constexpr uint8_t MP3_VOLUME = 25U;
 static_assert(MP3_VOLUME <= 30U, "DFPlayer volume range is 0..30");
 /// The voice clips are adverts, /ADVERT/0001.mp3 onwards, one per jaw
@@ -87,6 +90,9 @@ constexpr uint16_t MP3_SONG_COUNT = 42U;
 /// "Track finished" reports arriving this soon after a song starts or
 /// resumes are ignored: they belong to the voice clip or are duplicates.
 constexpr uint32_t MP3_FINISH_GUARD_MS = 2000U;
+/// BUSY must stay idle this long before the song counts as over; it blips
+/// idle while an advert starts or ends.
+constexpr uint32_t MP3_STOPPED_MS = 1000U;
 /// Wait between a "track finished" report and the next play command. The
 /// module sends the report twice and may drop a command sent in between.
 constexpr uint32_t MP3_NEXT_SONG_DELAY_MS = 500U;

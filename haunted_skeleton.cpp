@@ -18,7 +18,7 @@ constexpr uint8_t NO_VOICE = Mouth::SPEECH_COUNT;
 }  // namespace
 
 HauntedSkeleton::HauntedSkeleton()
-    : mp3_(config::MP3_RX_PIN, config::MP3_TX_PIN),
+    : mp3_(config::MP3_RX_PIN, config::MP3_TX_PIN, config::MP3_BUSY_PIN),
       sensor_(),
       mouth_(config::MOUTH_SERVO_PIN,
              config::MOUTH_CLOSED_DEG,
@@ -35,6 +35,7 @@ HauntedSkeleton::HauntedSkeleton()
       song_queued_ms_(0U),
       is_song_queued_(false),
       song_retry_count_(0U),
+      last_busy_ms_(0U),
       last_print_ms_(0U)
 {
 }
@@ -138,11 +139,23 @@ void HauntedSkeleton::playQueuedSong(uint32_t now_ms)
   mp3_.play(track);
   song_start_ms_ = now_ms;
   last_play_ms_ = now_ms;
+  // BUSY takes a moment to go active; do not count that as silence.
+  last_busy_ms_ = now_ms;
   if (config::SERIAL_DEBUG && config::SERIAL_DEBUG_MP3)
   {
     Serial.print(F("MP3 playing track "));
     Serial.println(track);
   }
+}
+
+bool HauntedSkeleton::hasSongStopped(uint32_t now_ms)
+{
+  if (mp3_.isPlaying())
+  {
+    last_busy_ms_ = now_ms;
+    return false;
+  }
+  return (now_ms - last_busy_ms_) >= config::MP3_STOPPED_MS;
 }
 
 void HauntedSkeleton::handleMp3Events(const Mp3Player::Events& events,
@@ -153,6 +166,9 @@ void HauntedSkeleton::handleMp3Events(const Mp3Player::Events& events,
     // Late reports about the previous song; the queued one will replace it.
     return;
   }
+  // This module never reports the end of a track, so BUSY is what
+  // normally ends a song; a report, if one comes, is just as good.
+  const bool is_song_over = events.is_track_finished || hasSongStopped(now_ms);
   const bool is_play_recent =
       (now_ms - last_play_ms_) < config::MP3_FINISH_GUARD_MS;
   const bool is_song_settled =
@@ -171,8 +187,12 @@ void HauntedSkeleton::handleMp3Events(const Mp3Player::Events& events,
       queueSong(nextSongIndex(), now_ms);
     }
   }
-  else if (events.is_track_finished && is_song_settled)
+  else if (is_song_over && is_song_settled)
   {
+    if (config::SERIAL_DEBUG && config::SERIAL_DEBUG_MP3)
+    {
+      Serial.println(F("MP3 song over"));
+    }
     song_retry_count_ = 0U;
     queueSong(nextSongIndex(), now_ms);
   }
@@ -285,6 +305,8 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
         // The module resumes the interrupted song by itself. Restart the
         // guard so a late finish report from the voice does not skip it.
         song_start_ms_ = now_ms;
+        // BUSY was not watched during the voice; start afresh.
+        last_busy_ms_ = now_ms;
         cooldown_start_ms_ = now_ms;
         mode_ = Mode::COOLDOWN;
       }
