@@ -6,7 +6,7 @@
 /// while something is within the skeleton's detection range, so the test
 /// also works without a computer.
 ///
-/// Wiring: VIN -> 5V, GND -> GND, SDA -> A4, SCL -> A5; eye LEDs on D8.
+/// Wiring: VIN -> 3V3, GND -> GND, SDA -> A4, SCL -> A5; eye LEDs on D8.
 /// Upload this sketch on its own (open tools/tof_test in the IDE).
 
 #include <stdint.h>
@@ -26,7 +26,8 @@ constexpr uint32_t TIMING_BUDGET_US = 33000U;
 constexpr uint32_t PERIOD_MS = 50U;
 constexpr uint16_t IO_TIMEOUT_MS = 500U;
 constexpr uint32_t I2C_TIMEOUT_US = 3000U;
-constexpr uint32_t I2C_CLOCK_HZ = 400000U;
+/// Standard mode: the lines only rise to 3.3 V.
+constexpr uint32_t I2C_CLOCK_HZ = 100000U;
 /// Readings beyond this mean nothing was seen (the sensor reports ~8 m).
 constexpr uint16_t MAX_RANGE_MM = 2000U;
 /// The VL53L0X answers at this address unless it was changed.
@@ -121,6 +122,9 @@ void setup()
   Serial.println(F("VL53L0X test"));
 
   Wire.begin();
+  // Turn off the internal pull-ups to 5 V; the sensor is 3.3 V only.
+  digitalWrite(SDA, LOW);
+  digitalWrite(SCL, LOW);
   Wire.setClock(I2C_CLOCK_HZ);
   Wire.setWireTimeout(I2C_TIMEOUT_US, true);
   sensor.setTimeout(IO_TIMEOUT_MS);

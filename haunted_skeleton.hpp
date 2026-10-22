@@ -67,6 +67,11 @@ class HauntedSkeleton
   /// @param [in] blink_count Number of blinks; tells the errors apart.
   void signalError(uint8_t blink_count);
 
+  /// @brief Prints the sensor reading every config::SERIAL_PRINT_PERIOD_MS
+  ///        when config::SERIAL_DEBUG is set.
+  /// @param [in] now_ms Current time from millis().
+  void printSensor(uint32_t now_ms);
+
   /// @brief Moves to the next song in the playlist and plays it.
   /// @param [in] now_ms Current time from millis().
   void playNextSong(uint32_t now_ms);
@@ -93,6 +98,8 @@ class HauntedSkeleton
   uint16_t song_index_;
   /// When the current song started or last resumed after the voice.
   uint32_t song_start_ms_;
+  /// When the sensor reading was last printed.
+  uint32_t last_print_ms_;
 };
 
 }  // namespace skeleton

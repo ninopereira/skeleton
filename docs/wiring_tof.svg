@@ -150,7 +150,11 @@
 
   <!-- DFPlayer supply: 3.3 V only -->
   <path d="M408 280 H910 V205 H880" class="w v3"/>
-  <text x="490" y="273" class="wl" text-anchor="middle">3V3 → MP3 VCC (3.3 V only)</text>
+  <text x="555" y="296" class="wl" text-anchor="middle">3V3 → MP3 VCC + ToF VIN (3.3 V only)</text>
+
+  <!-- ToF supply: 3.3 V only, tapped off the DFPlayer supply -->
+  <path d="M910 280 V345 H880" class="w v3"/>
+  <circle cx="910" cy="280" r="5" fill="#0b7285" class="dot"/>
 
   <!-- Time-of-flight sensor (I2C) -->
   <path d="M408 345 H700" class="w i2c"/>
@@ -161,10 +165,6 @@
   <!-- Eyes -->
   <path d="M408 475 H700" class="w eye"/>
   <text x="555" y="468" class="wl" text-anchor="middle">D8 → eyes (HIGH = on)</text>
-
-  <!-- Logic 5 V bus -->
-  <path d="M408 520 H940 V345 H880" class="w v5"/>
-  <text x="555" y="513" class="wl" text-anchor="middle">5 V from board regulator (logic only)</text>
 
   <!-- GND bus -->
   <path d="M408 550 H970 V170 H880" class="w gnd"/>
@@ -208,8 +208,7 @@
       <line x1="0" y1="66" x2="28" y2="66" class="w eye"/><text x="36" y="70">Eye LEDs</text>
       <line x1="0" y1="88" x2="28" y2="88" class="w srv"/><text x="36" y="92">Servo signal</text>
 
-      <line x1="150" y1="22" x2="178" y2="22" class="w v5"/><text x="186" y="26">Logic 5 V</text>
-      <line x1="0" y1="110" x2="28" y2="110" class="w v3"/><text x="36" y="114">MP3 3.3 V</text>
+      <line x1="150" y1="22" x2="178" y2="22" class="w v3"/><text x="186" y="26">3.3 V</text>
       <line x1="150" y1="44" x2="178" y2="44" class="w vs"/><text x="186" y="48">Servo 5–6 V</text>
       <line x1="150" y1="66" x2="178" y2="66" class="w gnd"/><text x="186" y="70">GND</text>
       <line x1="150" y1="88" x2="178" y2="88" class="w bat"/><text x="186" y="92">Battery</text>
@@ -217,7 +216,7 @@
       <text x="300" y="26">• Servos draw too much for the board's</text>
       <text x="300" y="42">  5 V regulator: give them their own supply.</text>
       <text x="300" y="62">• Servo supply GND must join board GND.</text>
-      <text x="300" y="82">• DFPlayer VCC to 3V3, never 5 V.</text>
+      <text x="300" y="82">• DFPlayer VCC and ToF VIN to 3V3, never 5 V.</text>
       <text x="300" y="102">• 680 Ω + 1 kΩ divider drops D2's 5 V</text>
       <text x="300" y="118">  to ~3 V on the MP3 RX pin.</text>
     </g>

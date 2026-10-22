@@ -56,7 +56,9 @@ constexpr uint32_t TOF_STALE_MS = 500U;
 /// Limits on the library's own waits and on each I2C transfer.
 constexpr uint16_t TOF_IO_TIMEOUT_MS = 500U;
 constexpr uint32_t TOF_I2C_TIMEOUT_US = 3000U;
-constexpr uint32_t TOF_I2C_CLOCK_HZ = 400000U;
+/// Standard mode: the 3.3 V pull-ups only just clear the Uno's 3.0 V
+/// "high" threshold, so the lines need time to rise.
+constexpr uint32_t TOF_I2C_CLOCK_HZ = 100000U;
 
 static_assert((TOF_PERIOD_MS * 1000U) >= TOF_TIMING_BUDGET_US,
               "the period must leave time for the whole measurement");
@@ -146,6 +148,15 @@ constexpr uint8_t SENSOR_ERROR_BLINK_COUNT = 3U;
 constexpr uint32_t ERROR_BLINK_MS = 150U;
 /// Dark pause after each error pattern, so two patterns can be told apart.
 constexpr uint32_t ERROR_GAP_MS = 1000U;
+/// @}
+
+/// @name Serial Monitor diagnostics
+/// @{
+/// Prints the sensor readings on the Serial Monitor. Uses pins 0 and 1.
+constexpr bool SERIAL_DEBUG = true;
+constexpr uint32_t SERIAL_BAUD = 115200U;
+/// Time between printed readings.
+constexpr uint32_t SERIAL_PRINT_PERIOD_MS = 100U;
 /// @}
 
 /// @name Behaviour timing

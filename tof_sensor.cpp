@@ -31,6 +31,11 @@ TofSensor::TofSensor()
 bool TofSensor::begin()
 {
   Wire.begin();
+  // Wire.begin() turns on the internal pull-ups, which pull SDA and SCL
+  // towards 5 V. The sensor runs on 3.3 V and is not 5 V tolerant, so
+  // only its board's pull-ups to 3.3 V may drive the lines high.
+  digitalWrite(SDA, LOW);
+  digitalWrite(SCL, LOW);
   Wire.setClock(config::TOF_I2C_CLOCK_HZ);
   // Without a timeout a loose wire can hang the I2C bus, and the whole
   // sketch with it.

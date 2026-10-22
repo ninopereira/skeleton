@@ -15,7 +15,7 @@ Arduino Uno.
 
 | Part | Connection |
 |---|---|
-| VL53L0X time-of-flight sensor | VIN → 5V, GND → GND, SDA → A4, SCL → A5 |
+| VL53L0X time-of-flight sensor | **VIN on 3V3, not 5V**; GND → GND, SDA → A4, SCL → A5 |
 | *or* HC-SR04 sonar | trig pin 7, echo pin 6 |
 | DFPlayer Mini | **VCC on 3V3, not 5V**; module TX → pin 3; pin 2 → 680 Ω → module RX, 1 kΩ from module RX to GND |
 | Jaw servo | pin 9 |
@@ -28,9 +28,16 @@ Set `DISTANCE_SENSOR` there to the sensor you fitted:
 `DistanceSensorType::SONAR` (HC-SR04). The detection range
 (`DETECT_MIN_CM` / `DETECT_MAX_CM`) applies to both.
 
-The VL53L0X must be on a breakout board with its own regulator and
-pull-ups (e.g. GY-530 or Pololu/Adafruit boards); the bare sensor runs on
-2.8 V only. Peel off the protective film over the lens.
+The VL53L0X runs on 3.3 V and its SDA/SCL pins are not 5 V tolerant. The
+sketch turns off the Uno's internal pull-ups (which go to 5 V), so the
+sensor board's own pull-ups to 3.3 V must hold the lines high; if the
+board has none, fit 4.7 kΩ from SDA and from SCL to 3V3. The bus runs at
+100 kHz because 3.3 V only just counts as high for the Uno. Peel off the
+protective film over the lens.
+
+The 3V3 pin also feeds the DFPlayer and can only supply about 150 mA
+(Uno R3). If the sensor drops out while music plays loudly, power both
+from a separate 3.3 V regulator instead.
 
 ![Wiring diagram](docs/wiring.svg)
 

@@ -30,7 +30,8 @@ HauntedSkeleton::HauntedSkeleton()
       voice_start_ms_(0U),
       voice_index_(NO_VOICE),
       song_index_(0U),
-      song_start_ms_(0U)
+      song_start_ms_(0U),
+      last_print_ms_(0U)
 {
 }
 
@@ -39,9 +40,17 @@ void HauntedSkeleton::begin()
   eyes_.begin();
   mouth_.begin();
   arms_.begin();
+  if (config::SERIAL_DEBUG)
+  {
+    Serial.begin(config::SERIAL_BAUD);
+  }
 
   if (!sensor_.begin())
   {
+    if (config::SERIAL_DEBUG)
+    {
+      Serial.println(F("Distance sensor not answering"));
+    }
     signalError(config::SENSOR_ERROR_BLINK_COUNT);
   }
   if (!mp3_.begin(config::MP3_VOLUME))
@@ -55,6 +64,7 @@ void HauntedSkeleton::begin()
 void HauntedSkeleton::update(uint32_t now_ms)
 {
   sensor_.update(now_ms);
+  printSensor(now_ms);
   mouth_.update(now_ms);
   arms_.update(now_ms);
   updateMusic(now_ms);
@@ -72,6 +82,27 @@ void HauntedSkeleton::signalError(uint8_t blink_count)
     delay(config::ERROR_BLINK_MS);
   }
   delay(config::ERROR_GAP_MS);
+}
+
+void HauntedSkeleton::printSensor(uint32_t now_ms)
+{
+  if (!config::SERIAL_DEBUG ||
+      ((now_ms - last_print_ms_) < config::SERIAL_PRINT_PERIOD_MS))
+  {
+    return;
+  }
+  last_print_ms_ = now_ms;
+  const int16_t distance_cm = sensor_.getLastDistanceCm();
+  if (distance_cm == PresenceSensor::NO_TARGET)
+  {
+    Serial.print(F("-- cm"));
+  }
+  else
+  {
+    Serial.print(distance_cm);
+    Serial.print(F(" cm"));
+  }
+  Serial.println(sensor_.isTargetPresent() ? F("  VISITOR") : F(""));
 }
 
 void HauntedSkeleton::playNextSong(uint32_t now_ms)
