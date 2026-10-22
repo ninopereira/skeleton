@@ -5,23 +5,22 @@
 
 #include <stdint.h>
 
+#include "presence_filter.hpp"
+
 namespace skeleton
 {
 
 /// @brief Periodically pings an HC-SR04 and reports whether someone is near.
 ///
-/// A target is reported only after several consecutive in-range readings,
-/// which filters out single spurious echoes.
+/// Pins come from config::SONAR_*. Readings are debounced by a
+/// PresenceFilter.
 class Sonar
 {
  public:
   /// Value returned by getLastDistanceCm() when no echo was received.
   static constexpr int16_t NO_ECHO = -1;
 
-  /// @brief Creates a sonar on the given pins.
-  /// @param [in] trig_pin Trigger output pin.
-  /// @param [in] echo_pin Echo input pin.
-  Sonar(uint8_t trig_pin, uint8_t echo_pin);
+  Sonar();
 
   Sonar(const Sonar&) = delete;
   Sonar& operator=(const Sonar&) = delete;
@@ -29,7 +28,8 @@ class Sonar
   Sonar& operator=(Sonar&&) = delete;
 
   /// @brief Configures the pins.
-  void begin();
+  /// @retval true Always: the HC-SR04 gives no sign of being connected.
+  bool begin();
 
   /// @brief Pings the sensor if the sampling period has elapsed.
   ///
@@ -50,11 +50,9 @@ class Sonar
   /// @return Distance in cm, or NO_ECHO on timeout.
   int16_t measureCm() const;
 
-  uint8_t trig_pin_;
-  uint8_t echo_pin_;
+  PresenceFilter filter_;
   uint32_t last_ping_ms_;
   int16_t last_distance_cm_;
-  uint8_t hit_count_;
 };
 
 }  // namespace skeleton

@@ -10,6 +10,26 @@ namespace skeleton
 namespace config
 {
 
+/// @name Visitor detection
+/// @{
+/// @brief Sensors that can detect a visitor.
+enum class DistanceSensorType : uint8_t
+{
+  SONAR,           ///< HC-SR04 ultrasonic, on SONAR_TRIG_PIN / ECHO_PIN.
+  TIME_OF_FLIGHT,  ///< VL53L0X laser, on the I2C pins (SDA A4, SCL A5).
+};
+/// The sensor fitted to the skeleton.
+constexpr DistanceSensorType DISTANCE_SENSOR =
+    DistanceSensorType::TIME_OF_FLIGHT;
+
+/// Readings below this are treated as noise.
+constexpr int16_t DETECT_MIN_CM = 3;
+/// Anything closer than this counts as a visitor.
+constexpr int16_t DETECT_MAX_CM = 120;
+/// Consecutive in-range readings required before reporting presence.
+constexpr uint8_t DETECT_CONFIRM_COUNT = 2U;
+/// @}
+
 /// @name HC-SR04 sonar
 /// @{
 constexpr uint8_t SONAR_TRIG_PIN = 7U;
@@ -19,12 +39,31 @@ constexpr uint8_t SONAR_ECHO_PIN = 6U;
 constexpr uint32_t SONAR_PERIOD_MS = 60U;
 /// Echo timeout (~4 m round trip) so pulseIn() never blocks for long.
 constexpr uint32_t SONAR_TIMEOUT_US = 25000U;
-/// Readings below this are treated as noise.
-constexpr int16_t DETECT_MIN_CM = 3;
-/// Anything closer than this counts as a visitor.
-constexpr int16_t DETECT_MAX_CM = 80;
-/// Consecutive in-range readings required before reporting presence.
-constexpr uint8_t DETECT_CONFIRM_COUNT = 2U;
+/// @}
+
+/// @name VL53L0X time-of-flight sensor
+/// @{
+/// Time spent on each measurement; longer is more accurate. 33 ms is the
+/// sensor's default and reaches about 1.2 m.
+constexpr uint32_t TOF_TIMING_BUDGET_US = 33000U;
+/// Time between measurement starts; must cover the timing budget.
+constexpr uint32_t TOF_PERIOD_MS = 50U;
+/// Readings beyond this are "nothing there" (the sensor reports ~8 m).
+constexpr uint16_t TOF_MAX_RANGE_MM = 2000U;
+/// With no new measurement for this long the sensor is assumed lost and
+/// any visitor is cleared.
+constexpr uint32_t TOF_STALE_MS = 500U;
+/// Limits on the library's own waits and on each I2C transfer.
+constexpr uint16_t TOF_IO_TIMEOUT_MS = 500U;
+constexpr uint32_t TOF_I2C_TIMEOUT_US = 3000U;
+constexpr uint32_t TOF_I2C_CLOCK_HZ = 400000U;
+
+static_assert((TOF_PERIOD_MS * 1000U) >= TOF_TIMING_BUDGET_US,
+              "the period must leave time for the whole measurement");
+static_assert(TOF_STALE_MS > TOF_PERIOD_MS,
+              "the sensor must get a chance to report before it is stale");
+static_assert(static_cast<uint32_t>(DETECT_MAX_CM) * 10U < TOF_MAX_RANGE_MM,
+              "the detection range must be within the sensor's range");
 /// @}
 
 /// @name DFPlayer Mini MP3 player (software serial)
@@ -102,7 +141,11 @@ static_assert((LEFT_ARM_SERVO_PIN != RIGHT_ARM_SERVO_PIN) &&
 constexpr uint8_t EYES_LED_PIN = 8U;
 /// Blinks at boot when the MP3 player or its SD card does not answer.
 constexpr uint8_t MP3_ERROR_BLINK_COUNT = 5U;
-constexpr uint32_t MP3_ERROR_BLINK_MS = 150U;
+/// Blinks at boot when the time-of-flight sensor does not answer.
+constexpr uint8_t SENSOR_ERROR_BLINK_COUNT = 3U;
+constexpr uint32_t ERROR_BLINK_MS = 150U;
+/// Dark pause after each error pattern, so two patterns can be told apart.
+constexpr uint32_t ERROR_GAP_MS = 1000U;
 /// @}
 
 /// @name Behaviour timing

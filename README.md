@@ -15,20 +15,30 @@ Arduino Uno.
 
 | Part | Connection |
 |---|---|
-| HC-SR04 sonar | trig pin 7, echo pin 6 |
+| VL53L0X time-of-flight sensor | VIN → 5V, GND → GND, SDA → A4, SCL → A5 |
+| *or* HC-SR04 sonar | trig pin 7, echo pin 6 |
 | DFPlayer Mini | **VCC on 3V3, not 5V**; module TX → pin 3; pin 2 → 680 Ω → module RX, 1 kΩ from module RX to GND |
 | Jaw servo | pin 9 |
 | Arm servos | left: pin 10, right: pin 11 |
 | Eye LEDs | pin 8 |
 
 All pins, angles, distances and timings live in [`config.hpp`](config.hpp).
+Set `DISTANCE_SENSOR` there to the sensor you fitted:
+`DistanceSensorType::TIME_OF_FLIGHT` (VL53L0X) or
+`DistanceSensorType::SONAR` (HC-SR04). The detection range
+(`DETECT_MIN_CM` / `DETECT_MAX_CM`) applies to both.
+
+The VL53L0X must be on a breakout board with its own regulator and
+pull-ups (e.g. GY-530 or Pololu/Adafruit boards); the bare sensor runs on
+2.8 V only. Peel off the protective film over the lens.
 
 ![Wiring diagram](docs/wiring.svg)
 
 ## Setup
 
-1. Install the **Servo** and **DFRobotDFPlayerMini** (1.0.6) libraries
-   in the Arduino IDE.
+1. Install the **Servo**, **DFRobotDFPlayerMini** (1.0.6) and
+   **VL53L0X** by Pololu (1.3.1) libraries in the Arduino IDE. The
+   VL53L0X library is needed even when the sonar is selected.
 2. Format a FAT32 SD card and copy the songs to its root one at a time
    in the order they should play (the module numbers tracks by copy
    order). Then create a folder `ADVERT` and copy the voice clips from
@@ -44,7 +54,9 @@ All pins, angles, distances and timings live in [`config.hpp`](config.hpp).
    current than the board's 5 V regulator supplies.
 4. If the eyes blink 5 times at power-up, the MP3 player or its SD card
    did not answer: check the wiring and the card. `tools/mp3_test` tests
-   the player on its own.
+   the player on its own. If they blink 3 times, the VL53L0X did not
+   answer: check its I2C wiring. `tools/tof_test` tests the sensor on
+   its own.
 5. Calibrate `MOUTH_CLOSED_DEG` / `MOUTH_OPEN_DEG` and the arm angles and
    sweep times in `config.hpp` for your build.
 
@@ -63,7 +75,10 @@ All pins, angles, distances and timings live in [`config.hpp`](config.hpp).
 | `skeleton.ino` | Entry point |
 | `haunted_skeleton.*` | Behaviour state machine |
 | `mp3_player.*` | DFPlayer Mini wrapper |
-| `sonar.*` | HC-SR04 with debounced presence detection |
+| `presence_sensor.hpp` | Picks the sensor selected in `config.hpp` |
+| `presence_filter.*` | Debounced presence detection shared by both sensors |
+| `tof_sensor.*` | VL53L0X time-of-flight sensor |
+| `sonar.*` | HC-SR04 ultrasonic sensor |
 | `mouth.*` | Scripted jaw animation |
 | `arm.*`, `arms.*` | Staggered up-and-down servo arm gesture |
 | `eyes.*` | Eye LEDs |

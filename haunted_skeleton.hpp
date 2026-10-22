@@ -1,5 +1,6 @@
 /// @file haunted_skeleton.hpp
-/// @brief Top-level behaviour: background music, sonar trigger, talking jaw.
+/// @brief Top-level behaviour: background music, visitor trigger, talking
+///        jaw.
 
 #pragma once
 
@@ -9,16 +10,16 @@
 #include "eyes.hpp"
 #include "mouth.hpp"
 #include "mp3_player.hpp"
-#include "sonar.hpp"
+#include "presence_sensor.hpp"
 
 namespace skeleton
 {
 
-/// @brief Coordinates the MP3 player, sonar and mouth.
+/// @brief Coordinates the MP3 player, visitor sensor and mouth.
 ///
 /// - On begin() the playlist starts with its first song. Each song is
 ///   followed by the next one, wrapping back to the first after the last.
-/// - When the sonar sees a visitor the song pauses, a randomly chosen voice
+/// - When the sensor (config::DISTANCE_SENSOR) sees a visitor the song pauses, a randomly chosen voice
 ///   clip (never the same one twice in a row) plays with the jaw in sync, and the song then resumes where it
 ///   left off.
 /// - When the jaw starts talking each arm goes up and back down once, one
@@ -62,8 +63,9 @@ class HauntedSkeleton
   /// @return 0-based phrase index, below Mouth::SPEECH_COUNT.
   uint8_t pickVoice() const;
 
-  /// @brief Blinks the eyes to report that the MP3 player is missing.
-  void signalMp3Error();
+  /// @brief Blinks the eyes to report a missing module, then pauses.
+  /// @param [in] blink_count Number of blinks; tells the errors apart.
+  void signalError(uint8_t blink_count);
 
   /// @brief Moves to the next song in the playlist and plays it.
   /// @param [in] now_ms Current time from millis().
@@ -78,7 +80,7 @@ class HauntedSkeleton
   void updateMode(uint32_t now_ms);
 
   Mp3Player mp3_;
-  Sonar sonar_;
+  PresenceSensor sensor_;
   Mouth mouth_;
   Arms arms_;
   Eyes eyes_;

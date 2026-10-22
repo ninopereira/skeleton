@@ -19,7 +19,7 @@ constexpr uint8_t NO_VOICE = Mouth::SPEECH_COUNT;
 
 HauntedSkeleton::HauntedSkeleton()
     : mp3_(config::MP3_RX_PIN, config::MP3_TX_PIN),
-      sonar_(config::SONAR_TRIG_PIN, config::SONAR_ECHO_PIN),
+      sensor_(),
       mouth_(config::MOUTH_SERVO_PIN,
              config::MOUTH_CLOSED_DEG,
              config::MOUTH_OPEN_DEG),
@@ -37,13 +37,16 @@ HauntedSkeleton::HauntedSkeleton()
 void HauntedSkeleton::begin()
 {
   eyes_.begin();
-  sonar_.begin();
   mouth_.begin();
   arms_.begin();
 
+  if (!sensor_.begin())
+  {
+    signalError(config::SENSOR_ERROR_BLINK_COUNT);
+  }
   if (!mp3_.begin(config::MP3_VOLUME))
   {
-    signalMp3Error();
+    signalError(config::MP3_ERROR_BLINK_COUNT);
   }
   mp3_.play(config::MP3_FIRST_SONG_TRACK);
   song_start_ms_ = millis();
@@ -51,23 +54,24 @@ void HauntedSkeleton::begin()
 
 void HauntedSkeleton::update(uint32_t now_ms)
 {
-  sonar_.update(now_ms);
+  sensor_.update(now_ms);
   mouth_.update(now_ms);
   arms_.update(now_ms);
   updateMusic(now_ms);
   updateMode(now_ms);
 }
 
-void HauntedSkeleton::signalMp3Error()
+void HauntedSkeleton::signalError(uint8_t blink_count)
 {
-  // Blocking is fine here: it only runs once, from begin().
-  for (uint8_t i = 0U; i < config::MP3_ERROR_BLINK_COUNT; ++i)
+  // Blocking is fine here: it only runs from begin().
+  for (uint8_t i = 0U; i < blink_count; ++i)
   {
     eyes_.turnOn();
-    delay(config::MP3_ERROR_BLINK_MS);
+    delay(config::ERROR_BLINK_MS);
     eyes_.turnOff();
-    delay(config::MP3_ERROR_BLINK_MS);
+    delay(config::ERROR_BLINK_MS);
   }
+  delay(config::ERROR_GAP_MS);
 }
 
 void HauntedSkeleton::playNextSong(uint32_t now_ms)
@@ -134,7 +138,7 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
   switch (mode_)
   {
     case Mode::WAITING:
-      if (sonar_.isTargetPresent())
+      if (sensor_.isTargetPresent())
       {
         greetVisitor(now_ms);
       }

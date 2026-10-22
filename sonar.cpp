@@ -19,20 +19,16 @@ constexpr uint32_t US_PER_CM = 58U;
 
 }  // namespace
 
-Sonar::Sonar(uint8_t trig_pin, uint8_t echo_pin)
-    : trig_pin_(trig_pin),
-      echo_pin_(echo_pin),
-      last_ping_ms_(0U),
-      last_distance_cm_(NO_ECHO),
-      hit_count_(0U)
+Sonar::Sonar() : filter_(), last_ping_ms_(0U), last_distance_cm_(NO_ECHO)
 {
 }
 
-void Sonar::begin()
+bool Sonar::begin()
 {
-  pinMode(trig_pin_, OUTPUT);
-  digitalWrite(trig_pin_, LOW);
-  pinMode(echo_pin_, INPUT);
+  pinMode(config::SONAR_TRIG_PIN, OUTPUT);
+  digitalWrite(config::SONAR_TRIG_PIN, LOW);
+  pinMode(config::SONAR_ECHO_PIN, INPUT);
+  return true;
 }
 
 void Sonar::update(uint32_t now_ms)
@@ -44,26 +40,12 @@ void Sonar::update(uint32_t now_ms)
   }
   last_ping_ms_ = now_ms;
   last_distance_cm_ = measureCm();
-
-  const bool in_range = (last_distance_cm_ >= config::DETECT_MIN_CM) &&
-                        (last_distance_cm_ <= config::DETECT_MAX_CM);
-  if (!in_range)
-  {
-    hit_count_ = 0U;
-  }
-  else if (hit_count_ < config::DETECT_CONFIRM_COUNT)
-  {
-    ++hit_count_;
-  }
-  else
-  {
-    // Already confirmed; saturate instead of overflowing.
-  }
+  filter_.addReading(last_distance_cm_);
 }
 
 bool Sonar::isTargetPresent() const
 {
-  return hit_count_ >= config::DETECT_CONFIRM_COUNT;
+  return filter_.isTargetPresent();
 }
 
 int16_t Sonar::getLastDistanceCm() const
@@ -73,14 +55,14 @@ int16_t Sonar::getLastDistanceCm() const
 
 int16_t Sonar::measureCm() const
 {
-  digitalWrite(trig_pin_, LOW);
+  digitalWrite(config::SONAR_TRIG_PIN, LOW);
   delayMicroseconds(TRIG_SETTLE_US);
-  digitalWrite(trig_pin_, HIGH);
+  digitalWrite(config::SONAR_TRIG_PIN, HIGH);
   delayMicroseconds(TRIG_PULSE_US);
-  digitalWrite(trig_pin_, LOW);
+  digitalWrite(config::SONAR_TRIG_PIN, LOW);
 
   const uint32_t echo_us = static_cast<uint32_t>(
-      pulseIn(echo_pin_, HIGH, config::SONAR_TIMEOUT_US));
+      pulseIn(config::SONAR_ECHO_PIN, HIGH, config::SONAR_TIMEOUT_US));
   if (echo_us == 0U)
   {
     return NO_ECHO;
