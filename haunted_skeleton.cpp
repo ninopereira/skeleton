@@ -31,6 +31,10 @@ HauntedSkeleton::HauntedSkeleton()
       voice_index_(NO_VOICE),
       song_index_(0U),
       song_start_ms_(0U),
+      last_play_ms_(0U),
+      song_queued_ms_(0U),
+      is_song_queued_(false),
+      song_retry_count_(0U),
       last_print_ms_(0U)
 {
 }
@@ -57,8 +61,7 @@ void HauntedSkeleton::begin()
   {
     signalError(config::MP3_ERROR_BLINK_COUNT);
   }
-  mp3_.play(config::MP3_FIRST_SONG_TRACK);
-  song_start_ms_ = millis();
+  queueSong(0U, millis());
 }
 
 void HauntedSkeleton::update(uint32_t now_ms)
@@ -105,31 +108,108 @@ void HauntedSkeleton::printSensor(uint32_t now_ms)
   Serial.println(sensor_.isTargetPresent() ? F("  VISITOR") : F(""));
 }
 
-void HauntedSkeleton::playNextSong(uint32_t now_ms)
+uint16_t HauntedSkeleton::nextSongIndex() const
 {
-  ++song_index_;
-  if (song_index_ >= config::MP3_SONG_COUNT)
+  const uint16_t next = static_cast<uint16_t>(song_index_ + 1U);
+  return (next >= config::MP3_SONG_COUNT) ? 0U : next;
+}
+
+void HauntedSkeleton::queueSong(uint16_t song_index, uint32_t now_ms)
+{
+  song_index_ = song_index;
+  song_queued_ms_ = now_ms;
+  is_song_queued_ = true;
+}
+
+void HauntedSkeleton::playQueuedSong(uint32_t now_ms)
+{
+  if (!is_song_queued_ ||
+      ((now_ms - song_queued_ms_) < config::MP3_NEXT_SONG_DELAY_MS))
   {
-    song_index_ = 0U;
+    return;
   }
-  mp3_.play(
-      static_cast<uint16_t>(config::MP3_FIRST_SONG_TRACK + song_index_));
+  is_song_queued_ = false;
+  const uint16_t track =
+      static_cast<uint16_t>(config::MP3_FIRST_SONG_TRACK + song_index_);
+  mp3_.play(track);
   song_start_ms_ = now_ms;
+  last_play_ms_ = now_ms;
+  if (config::SERIAL_DEBUG)
+  {
+    Serial.print(F("MP3 playing track "));
+    Serial.println(track);
+  }
+}
+
+void HauntedSkeleton::handleMp3Events(const Mp3Player::Events& events,
+                                      uint32_t now_ms)
+{
+  if (is_song_queued_)
+  {
+    // Late reports about the previous song; the queued one will replace it.
+    return;
+  }
+  const bool is_play_recent =
+      (now_ms - last_play_ms_) < config::MP3_FINISH_GUARD_MS;
+  const bool is_song_settled =
+      (now_ms - song_start_ms_) >= config::MP3_FINISH_GUARD_MS;
+  if (events.has_error && is_play_recent)
+  {
+    if (song_retry_count_ < config::MP3_PLAY_RETRY_COUNT)
+    {
+      ++song_retry_count_;
+      queueSong(song_index_, now_ms);
+    }
+    else
+    {
+      // The song itself is unplayable (e.g. missing): move on.
+      song_retry_count_ = 0U;
+      queueSong(nextSongIndex(), now_ms);
+    }
+  }
+  else if (events.is_track_finished && is_song_settled)
+  {
+    song_retry_count_ = 0U;
+    queueSong(nextSongIndex(), now_ms);
+  }
+  else
+  {
+    // Nothing to act on.
+  }
+}
+
+void HauntedSkeleton::printMp3Events(const Mp3Player::Events& events) const
+{
+  if (!config::SERIAL_DEBUG)
+  {
+    return;
+  }
+  if (events.is_track_finished)
+  {
+    Serial.println(F("MP3 track finished"));
+  }
+  if (events.has_error)
+  {
+    // 1 busy, 2 sleeping, 3 bad frame, 4 bad checksum, 5 track out of
+    // range, 6 track not found.
+    Serial.print(F("MP3 error "));
+    Serial.println(events.error_code);
+  }
 }
 
 void HauntedSkeleton::updateMusic(uint32_t now_ms)
 {
   // Poll in every mode so the receive buffer is drained during the voice.
-  const bool is_track_finished = mp3_.pollTrackFinished();
-  // While talking, the song is paused under the voice, so a finish report
-  // belongs to the voice.
+  const Mp3Player::Events events = mp3_.poll();
+  printMp3Events(events);
+  // While talking, the song is paused under the voice, so reports belong
+  // to the voice, and a new song must not cut it off.
   const bool is_voice_active =
       (mode_ == Mode::STARTING) || (mode_ == Mode::TALKING);
-  const bool is_song_settled =
-      (now_ms - song_start_ms_) >= config::MP3_FINISH_GUARD_MS;
-  if (is_track_finished && !is_voice_active && is_song_settled)
+  if (!is_voice_active)
   {
-    playNextSong(now_ms);
+    handleMp3Events(events, now_ms);
+    playQueuedSong(now_ms);
   }
 }
 

@@ -87,6 +87,15 @@ constexpr uint16_t MP3_SONG_COUNT = 42U;
 /// "Track finished" reports arriving this soon after a song starts or
 /// resumes are ignored: they belong to the voice clip or are duplicates.
 constexpr uint32_t MP3_FINISH_GUARD_MS = 2000U;
+/// Wait between a "track finished" report and the next play command. The
+/// module sends the report twice and may drop a command sent in between.
+constexpr uint32_t MP3_NEXT_SONG_DELAY_MS = 500U;
+/// Times a play command the module rejects is resent before the song is
+/// skipped.
+constexpr uint8_t MP3_PLAY_RETRY_COUNT = 3U;
+
+static_assert(MP3_NEXT_SONG_DELAY_MS < MP3_FINISH_GUARD_MS,
+              "a rejected play must be reported within the guard");
 
 static_assert(MP3_SONG_COUNT > 0U, "the playlist needs at least one song");
 /// Time from the play command until sound comes out (file seek/decode).

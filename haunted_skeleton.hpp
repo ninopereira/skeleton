@@ -19,6 +19,9 @@ namespace skeleton
 ///
 /// - On begin() the playlist starts with its first song. Each song is
 ///   followed by the next one, wrapping back to the first after the last.
+///   The next song starts config::MP3_NEXT_SONG_DELAY_MS after the module
+///   reports the end of the previous one; a play command the module
+///   rejects is resent.
 /// - When the sensor (config::DISTANCE_SENSOR) sees a visitor the song pauses, a randomly chosen voice
 ///   clip (never the same one twice in a row) plays with the jaw in sync, and the song then resumes where it
 ///   left off.
@@ -72,9 +75,28 @@ class HauntedSkeleton
   /// @param [in] now_ms Current time from millis().
   void printSensor(uint32_t now_ms);
 
-  /// @brief Moves to the next song in the playlist and plays it.
+  /// @brief Playlist position after the current song, wrapping to 0.
+  /// @return 0-based playlist position.
+  uint16_t nextSongIndex() const;
+
+  /// @brief Plays a song after config::MP3_NEXT_SONG_DELAY_MS.
+  /// @param [in] song_index 0-based playlist position.
+  /// @param [in] now_ms     Current time from millis().
+  void queueSong(uint16_t song_index, uint32_t now_ms);
+
+  /// @brief Sends the queued song's play command once its delay is over.
   /// @param [in] now_ms Current time from millis().
-  void playNextSong(uint32_t now_ms);
+  void playQueuedSong(uint32_t now_ms);
+
+  /// @brief Queues the next song when one ends, or resends a rejected
+  ///        play command.
+  /// @param [in] events Reports from the module.
+  /// @param [in] now_ms Current time from millis().
+  void handleMp3Events(const Mp3Player::Events& events, uint32_t now_ms);
+
+  /// @brief Prints the module's reports when config::SERIAL_DEBUG is set.
+  /// @param [in] events Reports from the module.
+  void printMp3Events(const Mp3Player::Events& events) const;
 
   /// @brief Starts the next song when the current one ends on its own.
   /// @param [in] now_ms Current time from millis().
@@ -98,6 +120,14 @@ class HauntedSkeleton
   uint16_t song_index_;
   /// When the current song started or last resumed after the voice.
   uint32_t song_start_ms_;
+  /// When the last play command was sent.
+  uint32_t last_play_ms_;
+  /// When the song at song_index_ was queued.
+  uint32_t song_queued_ms_;
+  /// The song at song_index_ is waiting to be played.
+  bool is_song_queued_;
+  /// Play commands resent for the song at song_index_.
+  uint8_t song_retry_count_;
   /// When the sensor reading was last printed.
   uint32_t last_print_ms_;
 };

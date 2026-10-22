@@ -37,18 +37,28 @@ void Mp3Player::playAdvert(uint16_t file_number)
   player_.advertise(static_cast<int>(file_number));
 }
 
-bool Mp3Player::pollTrackFinished()
+Mp3Player::Events Mp3Player::poll()
 {
-  bool is_finished = false;
+  Events events = {false, false, 0U};
   // available() returns after each complete message; readType() clears it.
   while (player_.available())
   {
-    if (player_.readType() == DFPlayerPlayFinished)
+    const uint8_t type = player_.readType();
+    if (type == DFPlayerPlayFinished)
     {
-      is_finished = true;
+      events.is_track_finished = true;
+    }
+    else if (type == DFPlayerError)
+    {
+      events.has_error = true;
+      events.error_code = player_.read();
+    }
+    else
+    {
+      // Acknowledgements and card reports need no action.
     }
   }
-  return is_finished;
+  return events;
 }
 
 }  // namespace skeleton

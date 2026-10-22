@@ -13,6 +13,29 @@ namespace
 /// No angle has been written yet; outside the servo's 0..180 range.
 constexpr int16_t NO_ANGLE = -1;
 
+/// Keeps t * t * (3 * duration - 2 * t) in easeInOut() within uint32_t.
+constexpr uint32_t MAX_SWEEP_MS = 1000U;
+
+static_assert((config::ARM_RAISE_MS <= MAX_SWEEP_MS) &&
+                  (config::ARM_LOWER_MS <= MAX_SWEEP_MS),
+              "sweep times are limited by the easing arithmetic");
+
+/// @brief Smoothstep easing: slow start, fast middle, slow end.
+///
+/// Starting and stopping the arm at full speed jolts it, which can make
+/// the horn slip on the servo spline a little on every gesture.
+///
+/// @param [in] elapsed_ms  Time into the sweep, at most duration_ms.
+/// @param [in] duration_ms Length of the sweep, 1..MAX_SWEEP_MS.
+/// @return Eased time into the sweep, 0..duration_ms.
+uint32_t easeInOut(uint32_t elapsed_ms, uint32_t duration_ms)
+{
+  // duration * s(t / duration) with s(x) = 3x^2 - 2x^3.
+  const uint32_t t = elapsed_ms;
+  const uint32_t d = duration_ms;
+  return (t * t * ((3U * d) - (2U * t))) / (d * d);
+}
+
 }  // namespace
 
 Arm::Arm(uint8_t servo_pin, uint8_t down_deg, uint8_t up_deg)
@@ -93,9 +116,10 @@ int16_t Arm::sweepAngle(uint32_t elapsed_ms,
 {
   const uint32_t clamped_ms =
       (elapsed_ms > duration_ms) ? duration_ms : elapsed_ms;
-  const uint32_t remaining_ms = duration_ms - clamped_ms;
+  const uint32_t eased_ms = easeInOut(clamped_ms, duration_ms);
+  const uint32_t remaining_ms = duration_ms - eased_ms;
   const int32_t progress_ms =
-      static_cast<int32_t>(is_rising ? clamped_ms : remaining_ms);
+      static_cast<int32_t>(is_rising ? eased_ms : remaining_ms);
   // Signed span so a mirrored servo (up < down) also works.
   const int32_t span =
       static_cast<int32_t>(up_deg_) - static_cast<int32_t>(down_deg_);

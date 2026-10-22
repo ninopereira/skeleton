@@ -13,6 +13,7 @@ namespace skeleton
 /// @brief Sweeps one arm servo from its down angle to its up angle, holds
 ///        briefly, then sweeps it back down.
 ///
+/// Each sweep eases in and out so the arm never starts or stops abruptly.
 /// The servo holds every angle by itself, so the arm stays up during the
 /// pause at the top without any braking.
 class Arm
