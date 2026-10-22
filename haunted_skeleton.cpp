@@ -9,6 +9,13 @@
 
 namespace skeleton
 {
+namespace
+{
+
+/// voice_index_ value before the first greeting: no clip to avoid yet.
+constexpr uint8_t NO_VOICE = Mouth::SPEECH_COUNT;
+
+}  // namespace
 
 HauntedSkeleton::HauntedSkeleton()
     : mp3_(config::MP3_RX_PIN, config::MP3_TX_PIN),
@@ -21,6 +28,7 @@ HauntedSkeleton::HauntedSkeleton()
       mode_(Mode::WAITING),
       cooldown_start_ms_(0U),
       voice_start_ms_(0U),
+      voice_index_(NO_VOICE),
       song_index_(0U),
       song_start_ms_(0U)
 {
@@ -78,8 +86,8 @@ void HauntedSkeleton::updateMusic(uint32_t now_ms)
 {
   // Poll in every mode so the receive buffer is drained during the voice.
   const bool is_track_finished = mp3_.pollTrackFinished();
-  // While talking, a finish report is the voice's; the TALKING state
-  // restarts the music itself when the jaw script ends.
+  // While talking, the song is paused under the voice, so a finish report
+  // belongs to the voice.
   const bool is_voice_active =
       (mode_ == Mode::STARTING) || (mode_ == Mode::TALKING);
   const bool is_song_settled =
@@ -90,14 +98,34 @@ void HauntedSkeleton::updateMusic(uint32_t now_ms)
   }
 }
 
+uint8_t HauntedSkeleton::pickVoice() const
+{
+  if ((voice_index_ == NO_VOICE) || (Mouth::SPEECH_COUNT < 2U))
+  {
+    return static_cast<uint8_t>(random(Mouth::SPEECH_COUNT));
+  }
+  // Draw from the other clips and step over the last one, so each of them
+  // is equally likely.
+  uint8_t pick =
+      static_cast<uint8_t>(random(Mouth::SPEECH_COUNT - 1U));
+  if (pick >= voice_index_)
+  {
+    ++pick;
+  }
+  return pick;
+}
+
 void HauntedSkeleton::greetVisitor(uint32_t now_ms)
 {
   eyes_.turnOn();
-  mp3_.play(config::MP3_VOICE_TRACK);
-  voice_start_ms_ = now_ms;
   // The visitor's arrival time is unpredictable, which makes it a good
-  // seed: which arm leads differs on every greeting.
+  // seed: the phrase and which arm leads differ on every greeting.
   randomSeed(micros());
+  voice_index_ = pickVoice();
+  // An advert, not play(): the module pauses the song and resumes it from
+  // the same position once the voice ends. Advert files are 1-based.
+  mp3_.playAdvert(static_cast<uint16_t>(voice_index_ + 1U));
+  voice_start_ms_ = now_ms;
   mode_ = Mode::STARTING;
 }
 
@@ -114,7 +142,7 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
     case Mode::STARTING:
       if ((now_ms - voice_start_ms_) >= config::VOICE_LATENCY_MS)
       {
-        mouth_.startSpeech(now_ms);
+        mouth_.startSpeech(voice_index_, now_ms);
         arms_.start(now_ms);
         mode_ = Mode::TALKING;
       }
@@ -124,7 +152,9 @@ void HauntedSkeleton::updateMode(uint32_t now_ms)
       // the end of the voice.
       if (!mouth_.isSpeaking())
       {
-        playNextSong(now_ms);
+        // The module resumes the interrupted song by itself. Restart the
+        // guard so a late finish report from the voice does not skip it.
+        song_start_ms_ = now_ms;
         cooldown_start_ms_ = now_ms;
         mode_ = Mode::COOLDOWN;
       }

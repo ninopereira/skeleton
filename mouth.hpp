@@ -7,19 +7,21 @@
 
 #include <Servo.h>
 
+#include "mouth_script.hpp"
+
 namespace skeleton
 {
 
 /// @brief Plays a scripted jaw motion that mimics a spoken phrase.
 ///
-/// The script is a list of (openness, hold time) keyframes generated from
-/// the voice clip (see mouth_script.hpp), so the jaw follows the recorded
+/// Each script is a list of (openness, hold time) keyframes generated from
+/// one voice clip (see mouth_script.hpp), so the jaw follows the recorded
 /// speech. Call update() every loop iteration; it never blocks.
 ///
 /// @code{.cpp}
 /// Mouth mouth(9U, 90U, 130U);
 /// mouth.begin();
-/// mouth.startSpeech(millis());
+/// mouth.startSpeech(0U, millis());
 /// while (mouth.isSpeaking()) { mouth.update(millis()); }
 /// @endcode
 class Mouth
@@ -39,9 +41,17 @@ class Mouth
   /// @brief Attaches the servo and closes the jaw.
   void begin();
 
-  /// @brief Starts the phrase from the first keyframe.
-  /// @param [in] now_ms Current time from millis().
-  void startSpeech(uint32_t now_ms);
+  /// @brief Number of phrases, one per voice clip.
+  static constexpr uint8_t SPEECH_COUNT = skeleton::SPEECH_COUNT;
+
+  /// @brief Starts a phrase from its first keyframe.
+  ///
+  /// An out-of-range index is ignored and the jaw stays shut.
+  ///
+  /// @param [in] speech_index 0-based phrase, below SPEECH_COUNT; phrase i
+  ///                          belongs to voice clip /ADVERT/000(i+1).mp3.
+  /// @param [in] now_ms       Current time from millis().
+  void startSpeech(uint8_t speech_index, uint32_t now_ms);
 
   /// @brief Advances the animation; call every loop iteration.
   /// @param [in] now_ms Current time from millis().
@@ -56,10 +66,17 @@ class Mouth
   /// @param [in] open_pct 0 = closed, 100 = fully open.
   void setOpenness(uint8_t open_pct);
 
+  /// @brief Copies the current keyframe out of flash and applies it.
+  void loadFrame();
+
   Servo servo_;
   uint8_t servo_pin_;
   uint8_t closed_deg_;
   uint8_t open_deg_;
+  /// Phrase being animated; points into SPEECHES.
+  const Speech* speech_;
+  /// Copy of speech_->frames[frame_index_], which lives in flash.
+  Keyframe frame_;
   uint8_t frame_index_;
   uint32_t frame_start_ms_;
   bool is_speaking_;

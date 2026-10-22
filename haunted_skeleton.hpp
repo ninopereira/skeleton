@@ -18,10 +18,9 @@ namespace skeleton
 ///
 /// - On begin() the playlist starts with its first song. Each song is
 ///   followed by the next one, wrapping back to the first after the last.
-/// - When the sonar sees a visitor the voice clip replaces the music and
-///   the jaw moves in sync with it; the playlist then continues with the
-///   song after the interrupted one (the player cannot resume a track
-///   after playing another one).
+/// - When the sonar sees a visitor the song pauses, a randomly chosen voice
+///   clip (never the same one twice in a row) plays with the jaw in sync, and the song then resumes where it
+///   left off.
 /// - When the jaw starts talking each arm goes up and back down once, one
 ///   slightly after the other.
 /// - The eyes light up on detection and stay lit until the cooldown ends.
@@ -54,9 +53,14 @@ class HauntedSkeleton
     COOLDOWN,  ///< Jaw resting before it may talk again.
   };
 
-  /// @brief Starts the voice clip; the jaw and arms follow after latency.
+  /// @brief Starts a random voice clip; the jaw and arms follow after
+  ///        latency.
   /// @param [in] now_ms Current time from millis().
   void greetVisitor(uint32_t now_ms);
+
+  /// @brief Picks a random voice clip other than the previous one.
+  /// @return 0-based phrase index, below Mouth::SPEECH_COUNT.
+  uint8_t pickVoice() const;
 
   /// @brief Blinks the eyes to report that the MP3 player is missing.
   void signalMp3Error();
@@ -81,8 +85,11 @@ class HauntedSkeleton
   Mode mode_;
   uint32_t cooldown_start_ms_;
   uint32_t voice_start_ms_;
+  /// 0-based phrase chosen for the current (or last) greeting.
+  uint8_t voice_index_;
   /// 0-based playlist position of the current song.
   uint16_t song_index_;
+  /// When the current song started or last resumed after the voice.
   uint32_t song_start_ms_;
 };
 

@@ -32,6 +32,11 @@ void Mp3Player::play(uint16_t track)
   player_.play(static_cast<int>(track));
 }
 
+void Mp3Player::playAdvert(uint16_t file_number)
+{
+  player_.advertise(static_cast<int>(file_number));
+}
+
 bool Mp3Player::pollTrackFinished()
 {
   bool is_finished = false;

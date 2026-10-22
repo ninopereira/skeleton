@@ -36,19 +36,18 @@ constexpr uint8_t MP3_RX_PIN = 3U;
 constexpr uint8_t MP3_TX_PIN = 2U;
 constexpr uint8_t MP3_VOLUME = 25U;
 static_assert(MP3_VOLUME <= 30U, "DFPlayer volume range is 0..30");
-/// Tracks are numbered in the order files were copied to the card: copy
-/// voice.mp3 first, then the songs in the order they should play.
-constexpr uint16_t MP3_VOICE_TRACK = 1U;
-constexpr uint16_t MP3_FIRST_SONG_TRACK = 2U;
+/// The voice clips are adverts, /ADVERT/0001.mp3 onwards, one per jaw
+/// script in mouth_script.hpp: an advert pauses the song and the module
+/// resumes the song where it left off when the voice ends.
+/// Songs are numbered in the order they were copied to the card, so copy
+/// them first, in the order they should play, then the ADVERT folder.
+constexpr uint16_t MP3_FIRST_SONG_TRACK = 1U;
 constexpr uint16_t MP3_SONG_COUNT = 42U;
-/// "Track finished" reports arriving this soon after a song starts are
-/// ignored: they belong to the voice clip or are duplicates.
+/// "Track finished" reports arriving this soon after a song starts or
+/// resumes are ignored: they belong to the voice clip or are duplicates.
 constexpr uint32_t MP3_FINISH_GUARD_MS = 2000U;
 
 static_assert(MP3_SONG_COUNT > 0U, "the playlist needs at least one song");
-static_assert((MP3_VOICE_TRACK < MP3_FIRST_SONG_TRACK) ||
-                  (MP3_VOICE_TRACK >= (MP3_FIRST_SONG_TRACK + MP3_SONG_COUNT)),
-              "the voice track must not be part of the playlist");
 /// Time from the play command until sound comes out (file seek/decode).
 /// The jaw starts this much later so it stays in sync; tune by eye.
 constexpr uint32_t VOICE_LATENCY_MS = 100U;

@@ -49,6 +49,14 @@ class Mp3Player
   /// @param [in] track 1-based track index on the SD card.
   void play(uint16_t track);
 
+  /// @brief Plays /ADVERT/NNNN.mp3 over the current track.
+  ///
+  /// The current track pauses and resumes from the same position when the
+  /// advert ends. Nothing plays if no track is playing.
+  ///
+  /// @param [in] file_number NNNN in the advert file name (1..3000).
+  void playAdvert(uint16_t file_number);
+
   /// @brief Reads pending messages from the module without blocking.
   ///
   /// Call every loop(): the next command waits for the previous one's

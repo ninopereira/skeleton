@@ -3,7 +3,7 @@
 
 #include "mouth.hpp"
 
-#include "mouth_script.hpp"
+#include <avr/pgmspace.h>
 
 namespace skeleton
 {
@@ -12,10 +12,7 @@ namespace
 
 constexpr uint8_t SHUT = 0U;
 
-static_assert((sizeof(SPEECH) / sizeof(SPEECH[0])) < 255U,
-              "jaw script too long for an 8-bit frame index");
-constexpr uint8_t SPEECH_LENGTH =
-    static_cast<uint8_t>(sizeof(SPEECH) / sizeof(SPEECH[0]));
+static_assert(SPEECH_COUNT > 0U, "at least one jaw script is required");
 
 constexpr uint8_t PERCENT_MAX = 100U;
 
@@ -26,6 +23,8 @@ Mouth::Mouth(uint8_t servo_pin, uint8_t closed_deg, uint8_t open_deg)
       servo_pin_(servo_pin),
       closed_deg_(closed_deg),
       open_deg_(open_deg),
+      speech_(&SPEECHES[0]),
+      frame_{SHUT, 0U},
       frame_index_(0U),
       frame_start_ms_(0U),
       is_speaking_(false)
@@ -40,39 +39,53 @@ void Mouth::begin()
   setOpenness(SHUT);
 }
 
-void Mouth::startSpeech(uint32_t now_ms)
+void Mouth::startSpeech(uint8_t speech_index, uint32_t now_ms)
 {
+  if ((speech_index >= SPEECH_COUNT) ||
+      (SPEECHES[speech_index].length == 0U))
+  {
+    return;
+  }
+  speech_ = &SPEECHES[speech_index];
   frame_index_ = 0U;
   frame_start_ms_ = now_ms;
   is_speaking_ = true;
-  setOpenness(SPEECH[0].open_pct);
+  loadFrame();
 }
 
 void Mouth::update(uint32_t now_ms)
 {
-  if (!is_speaking_ || (frame_index_ >= SPEECH_LENGTH))
+  if (!is_speaking_)
   {
     return;
   }
-  if ((now_ms - frame_start_ms_) < SPEECH[frame_index_].hold_ms)
+  if ((now_ms - frame_start_ms_) < frame_.hold_ms)
   {
     return;
   }
 
   ++frame_index_;
   frame_start_ms_ = now_ms;
-  if (frame_index_ >= SPEECH_LENGTH)
+  if (frame_index_ >= speech_->length)
   {
     is_speaking_ = false;
     setOpenness(SHUT);
     return;
   }
-  setOpenness(SPEECH[frame_index_].open_pct);
+  loadFrame();
 }
 
 bool Mouth::isSpeaking() const
 {
   return is_speaking_;
+}
+
+void Mouth::loadFrame()
+{
+  // Plain reads would fetch RAM at the flash address, so copy it out.
+  static_cast<void>(memcpy_P(&frame_, &speech_->frames[frame_index_],
+                             sizeof(frame_)));
+  setOpenness(frame_.open_pct);
 }
 
 void Mouth::setOpenness(uint8_t open_pct)

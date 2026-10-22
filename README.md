@@ -5,10 +5,10 @@ Arduino Uno.
 
 - Plays the songs on the SD card in order on power-up, looping back to
   the first song after the last one.
-- When a visitor walks up, a voice clip asks *"Who are you? What are you
-  doing here?"* with the jaw synced to it, and each arm goes up and back
-  down, one slightly after the other. The music then continues with the
-  song after the interrupted one.
+- When a visitor walks up, the song pauses and one of the voice clips,
+  picked at random but never the same twice in a row, plays with the jaw
+  synced to it, and each arm goes up and back down, one slightly after
+  the other. The song then resumes where it left off.
 - The jaw then rests for at least 5 s before it can be triggered again.
 
 ## Hardware
@@ -29,10 +29,17 @@ All pins, angles, distances and timings live in [`config.hpp`](config.hpp).
 
 1. Install the **Servo** and **DFRobotDFPlayerMini** (1.0.6) libraries
    in the Arduino IDE.
-2. Format a FAT32 SD card and copy `voice.mp3` onto it first, then the
-   songs one at a time in the order they should play (the module numbers
-   tracks by copy order). Set `MP3_SONG_COUNT` in `config.hpp` to the
-   number of songs.
+2. Format a FAT32 SD card and copy the songs to its root one at a time
+   in the order they should play (the module numbers tracks by copy
+   order). Then create a folder `ADVERT` and copy the voice clips from
+   `sd_card/` into it, renamed so each starts with a **4-digit** number:
+   `0001_WhoAreYou.mp3`, `0002_ComeHere.mp3`, ... (the module only reads
+   the first four digits). An advert pauses the song and the song resumes
+   where it left off. Set `MP3_SONG_COUNT` in `config.hpp` to the number
+   of songs.
+   After adding, removing or changing a voice clip, regenerate the jaw
+   scripts with `python3 tools/make_jaw_script.py` (needs numpy and
+   ffmpeg); clip N in `sd_card/` must be advert N on the card.
 3. Power the servos well: three servos (two lifting arms) can draw more
    current than the board's 5 V regulator supplies.
 4. If the eyes blink 5 times at power-up, the MP3 player or its SD card
