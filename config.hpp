@@ -25,7 +25,7 @@ constexpr DistanceSensorType DISTANCE_SENSOR =
 /// Readings below this are treated as noise.
 constexpr int16_t DETECT_MIN_CM = 3;
 /// Anything closer than this counts as a visitor.
-constexpr int16_t DETECT_MAX_CM = 120;
+constexpr int16_t DETECT_MAX_CM = 90;
 /// Consecutive in-range readings required before reporting presence.
 constexpr uint8_t DETECT_CONFIRM_COUNT = 2U;
 /// @}
@@ -49,7 +49,7 @@ constexpr uint32_t TOF_TIMING_BUDGET_US = 33000U;
 /// Time between measurement starts; must cover the timing budget.
 constexpr uint32_t TOF_PERIOD_MS = 50U;
 /// Readings beyond this are "nothing there" (the sensor reports ~8 m).
-constexpr uint16_t TOF_MAX_RANGE_MM = 2000U;
+constexpr uint16_t TOF_MAX_RANGE_MM = 1000U;
 /// With no new measurement for this long the sensor is assumed lost and
 /// any visitor is cleared.
 constexpr uint32_t TOF_STALE_MS = 500U;

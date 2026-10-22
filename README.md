@@ -34,6 +34,10 @@ pull-ups (e.g. GY-530 or Pololu/Adafruit boards); the bare sensor runs on
 
 ![Wiring diagram](docs/wiring.svg)
 
+With the VL53L0X in place of the sonar:
+
+![Wiring diagram with the VL53L0X](docs/wiring_tof.svg)
+
 ## Setup
 
 1. Install the **Servo**, **DFRobotDFPlayerMini** (1.0.6) and
