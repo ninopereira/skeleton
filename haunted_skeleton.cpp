@@ -59,6 +59,10 @@ void HauntedSkeleton::begin()
   }
   if (!mp3_.begin(config::MP3_VOLUME))
   {
+    if (config::SERIAL_DEBUG)
+    {
+      Serial.println(F("MP3 player not answering"));
+    }
     signalError(config::MP3_ERROR_BLINK_COUNT);
   }
   queueSong(0U, millis());
@@ -194,6 +198,15 @@ void HauntedSkeleton::printMp3Events(const Mp3Player::Events& events) const
     // range, 6 track not found.
     Serial.print(F("MP3 error "));
     Serial.println(events.error_code);
+  }
+  if (events.has_other)
+  {
+    // Library types: 0 no reply (timeout), 1 garbled message, 2 card in,
+    // 3 card out, 4 card online (the module restarted), 11 query reply.
+    Serial.print(F("MP3 message "));
+    Serial.print(events.other_type);
+    Serial.print(F(" "));
+    Serial.println(events.other_value);
   }
 }
 

@@ -39,7 +39,7 @@ void Mp3Player::playAdvert(uint16_t file_number)
 
 Mp3Player::Events Mp3Player::poll()
 {
-  Events events = {false, false, 0U};
+  Events events = {false, false, 0U, false, 0U, 0U};
   // available() returns after each complete message; readType() clears it.
   while (player_.available())
   {
@@ -55,7 +55,9 @@ Mp3Player::Events Mp3Player::poll()
     }
     else
     {
-      // Acknowledgements and card reports need no action.
+      events.has_other = true;
+      events.other_type = type;
+      events.other_value = player_.read();
     }
   }
   return events;

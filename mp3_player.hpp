@@ -40,6 +40,11 @@ class Mp3Player
     bool is_track_finished;  ///< A track reached its natural end.
     bool has_error;          ///< The module rejected a command.
     uint16_t error_code;     ///< Module error code, when has_error is set.
+    /// Any other message, e.g. a missing acknowledgement or a module
+    /// restart; only of interest for diagnostics.
+    bool has_other;
+    uint8_t other_type;    ///< Library message type, when has_other is set.
+    uint16_t other_value;  ///< Its parameter, when has_other is set.
   };
 
   Mp3Player(const Mp3Player&) = delete;
