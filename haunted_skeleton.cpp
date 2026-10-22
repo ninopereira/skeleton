@@ -89,7 +89,7 @@ void HauntedSkeleton::signalError(uint8_t blink_count)
 
 void HauntedSkeleton::printSensor(uint32_t now_ms)
 {
-  if (!config::SERIAL_DEBUG ||
+  if (!config::SERIAL_DEBUG || !config::SERIAL_DEBUG_SENSOR ||
       ((now_ms - last_print_ms_) < config::SERIAL_PRINT_PERIOD_MS))
   {
     return;
@@ -134,7 +134,7 @@ void HauntedSkeleton::playQueuedSong(uint32_t now_ms)
   mp3_.play(track);
   song_start_ms_ = now_ms;
   last_play_ms_ = now_ms;
-  if (config::SERIAL_DEBUG)
+  if (config::SERIAL_DEBUG && config::SERIAL_DEBUG_MP3)
   {
     Serial.print(F("MP3 playing track "));
     Serial.println(track);
@@ -180,7 +180,7 @@ void HauntedSkeleton::handleMp3Events(const Mp3Player::Events& events,
 
 void HauntedSkeleton::printMp3Events(const Mp3Player::Events& events) const
 {
-  if (!config::SERIAL_DEBUG)
+  if (!config::SERIAL_DEBUG || !config::SERIAL_DEBUG_MP3)
   {
     return;
   }

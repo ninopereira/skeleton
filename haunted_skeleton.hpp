@@ -71,7 +71,7 @@ class HauntedSkeleton
   void signalError(uint8_t blink_count);
 
   /// @brief Prints the sensor reading every config::SERIAL_PRINT_PERIOD_MS
-  ///        when config::SERIAL_DEBUG is set.
+  ///        when config::SERIAL_DEBUG_SENSOR is set.
   /// @param [in] now_ms Current time from millis().
   void printSensor(uint32_t now_ms);
 
@@ -94,7 +94,8 @@ class HauntedSkeleton
   /// @param [in] now_ms Current time from millis().
   void handleMp3Events(const Mp3Player::Events& events, uint32_t now_ms);
 
-  /// @brief Prints the module's reports when config::SERIAL_DEBUG is set.
+  /// @brief Prints the module's reports when config::SERIAL_DEBUG_MP3 is
+  ///        set.
   /// @param [in] events Reports from the module.
   void printMp3Events(const Mp3Player::Events& events) const;
 

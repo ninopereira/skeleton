@@ -125,7 +125,7 @@ constexpr uint8_t RIGHT_ARM_UP_DEG = 70U;
 constexpr uint32_t ARM_RAISE_MS = 400U;
 constexpr uint32_t ARM_LOWER_MS = 600U;
 /// Pause at the top before coming back down.
-constexpr uint32_t ARM_HOLD_TOP_MS = 200U;
+constexpr uint32_t ARM_HOLD_TOP_MS = 700U;
 /// The second arm starts this long after the first (random in range), so
 /// they never move in lockstep.
 constexpr uint32_t ARM_STAGGER_MIN_MS = 250U;
@@ -161,10 +161,14 @@ constexpr uint32_t ERROR_GAP_MS = 1000U;
 
 /// @name Serial Monitor diagnostics
 /// @{
-/// Prints the sensor readings on the Serial Monitor. Uses pins 0 and 1.
+/// Enables the Serial Monitor (pins 0 and 1) and the start-up messages.
 constexpr bool SERIAL_DEBUG = true;
+/// Prints every distance sensor reading (needs SERIAL_DEBUG).
+constexpr bool SERIAL_DEBUG_SENSOR = false;
+/// Prints the MP3 player's commands and reports (needs SERIAL_DEBUG).
+constexpr bool SERIAL_DEBUG_MP3 = true;
 constexpr uint32_t SERIAL_BAUD = 115200U;
-/// Time between printed readings.
+/// Time between printed sensor readings.
 constexpr uint32_t SERIAL_PRINT_PERIOD_MS = 100U;
 /// @}
 
