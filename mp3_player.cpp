@@ -10,6 +10,9 @@ namespace
 
 /// Fixed by the module.
 constexpr uint32_t BAUD = 9600U;
+/// "Flash track finished". Some clone modules send it instead of 0x3D at
+/// the end of an SD card track; the library reports it as plain feedback.
+constexpr uint8_t FLASH_TRACK_FINISHED = 0x3EU;
 
 }  // namespace
 
@@ -39,12 +42,15 @@ void Mp3Player::playAdvert(uint16_t file_number)
 
 Mp3Player::Events Mp3Player::poll()
 {
-  Events events = {false, false, 0U, false, 0U, 0U};
+  Events events = {false, false, 0U, false, 0U, 0U, 0U};
   // available() returns after each complete message; readType() clears it.
   while (player_.available())
   {
     const uint8_t type = player_.readType();
-    if (type == DFPlayerPlayFinished)
+    const uint8_t command = player_.readCommand();
+    const bool is_flash_finished =
+        (type == DFPlayerFeedBack) && (command == FLASH_TRACK_FINISHED);
+    if ((type == DFPlayerPlayFinished) || is_flash_finished)
     {
       events.is_track_finished = true;
     }
@@ -57,6 +63,7 @@ Mp3Player::Events Mp3Player::poll()
     {
       events.has_other = true;
       events.other_type = type;
+      events.other_command = command;
       events.other_value = player_.read();
     }
   }

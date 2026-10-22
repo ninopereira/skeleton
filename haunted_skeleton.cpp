@@ -205,6 +205,8 @@ void HauntedSkeleton::printMp3Events(const Mp3Player::Events& events) const
     // 3 card out, 4 card online (the module restarted), 11 query reply.
     Serial.print(F("MP3 message "));
     Serial.print(events.other_type);
+    Serial.print(F(" cmd 0x"));
+    Serial.print(events.other_command, HEX);
     Serial.print(F(" "));
     Serial.println(events.other_value);
   }

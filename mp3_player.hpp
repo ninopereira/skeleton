@@ -43,8 +43,9 @@ class Mp3Player
     /// Any other message, e.g. a missing acknowledgement or a module
     /// restart; only of interest for diagnostics.
     bool has_other;
-    uint8_t other_type;    ///< Library message type, when has_other is set.
-    uint16_t other_value;  ///< Its parameter, when has_other is set.
+    uint8_t other_type;     ///< Library message type, when has_other is set.
+    uint8_t other_command;  ///< Raw command byte, when has_other is set.
+    uint16_t other_value;   ///< Its parameter, when has_other is set.
   };
 
   Mp3Player(const Mp3Player&) = delete;
