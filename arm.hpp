@@ -15,7 +15,8 @@ namespace skeleton
 ///
 /// Each sweep eases in and out so the arm never starts or stops abruptly.
 /// The servo holds every angle by itself, so the arm stays up during the
-/// pause at the top without any braking.
+/// pause at the top without any braking. Once the arm is back down the
+/// servo is detached so it cannot twitch at rest.
 class Arm
 {
  public:
@@ -74,6 +75,10 @@ class Arm
   /// @brief Writes an angle to the servo, only if it changed.
   /// @param [in] angle Angle in degrees.
   void setAngle(int16_t angle);
+
+  /// @brief Detaches the servo once it has had time to settle at rest.
+  /// @param [in] elapsed_ms Time since the arm went idle.
+  void releaseWhenSettled(uint32_t elapsed_ms);
 
   Servo servo_;
   uint8_t servo_pin_;

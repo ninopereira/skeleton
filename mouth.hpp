@@ -16,7 +16,9 @@ namespace skeleton
 ///
 /// Each script is a list of (openness, hold time) keyframes generated from
 /// one voice clip (see mouth_script.hpp), so the jaw follows the recorded
-/// speech. Call update() every loop iteration; it never blocks.
+/// speech. Call update() every loop iteration; it never blocks. Once the
+/// jaw has been shut for a moment the servo is detached so it cannot
+/// twitch at rest.
 ///
 /// @code{.cpp}
 /// Mouth mouth(9U, 90U, 130U);

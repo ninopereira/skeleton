@@ -109,6 +109,14 @@ static_assert(MP3_SONG_COUNT > 0U, "the playlist needs at least one song");
 constexpr uint32_t VOICE_LATENCY_MS = 100U;
 /// @}
 
+/// @name Servo rest
+/// @{
+/// After a servo comes to rest it is detached (no more pulses), which
+/// stops the twitching caused by pulse jitter. This is how long it gets
+/// to reach the rest angle first.
+constexpr uint32_t SERVO_DETACH_DELAY_MS = 500U;
+/// @}
+
 /// @name Mouth servo
 /// @{
 constexpr uint8_t MOUTH_SERVO_PIN = 9U;

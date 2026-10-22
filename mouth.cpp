@@ -5,6 +5,10 @@
 
 #include <avr/pgmspace.h>
 
+#include <Arduino.h>
+
+#include "config.hpp"
+
 namespace skeleton
 {
 namespace
@@ -37,6 +41,7 @@ void Mouth::begin()
   // more than the three servos used here.
   static_cast<void>(servo_.attach(servo_pin_));
   setOpenness(SHUT);
+  frame_start_ms_ = millis();
 }
 
 void Mouth::startSpeech(uint8_t speech_index, uint32_t now_ms)
@@ -45,6 +50,10 @@ void Mouth::startSpeech(uint8_t speech_index, uint32_t now_ms)
       (SPEECHES[speech_index].length == 0U))
   {
     return;
+  }
+  if (!servo_.attached())
+  {
+    static_cast<void>(servo_.attach(servo_pin_));
   }
   speech_ = &SPEECHES[speech_index];
   frame_index_ = 0U;
@@ -57,6 +66,12 @@ void Mouth::update(uint32_t now_ms)
 {
   if (!is_speaking_)
   {
+    // frame_start_ms_ marks when the jaw was last told to shut.
+    if (servo_.attached() &&
+        ((now_ms - frame_start_ms_) >= config::SERVO_DETACH_DELAY_MS))
+    {
+      servo_.detach();
+    }
     return;
   }
   if ((now_ms - frame_start_ms_) < frame_.hold_ms)

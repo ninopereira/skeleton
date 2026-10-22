@@ -3,6 +3,8 @@
 
 #include "arm.hpp"
 
+#include <Arduino.h>
+
 #include "config.hpp"
 
 namespace skeleton
@@ -56,6 +58,7 @@ void Arm::begin()
   // more than the three servos used here.
   static_cast<void>(servo_.attach(servo_pin_));
   setAngle(static_cast<int16_t>(down_deg_));
+  enter(Phase::IDLE, millis());
 }
 
 void Arm::start(uint32_t now_ms, uint32_t delay_ms)
@@ -63,6 +66,11 @@ void Arm::start(uint32_t now_ms, uint32_t delay_ms)
   if (phase_ != Phase::IDLE)
   {
     return;
+  }
+  if (!servo_.attached())
+  {
+    // The library kept the last angle, so it resumes at the down angle.
+    static_cast<void>(servo_.attach(servo_pin_));
   }
   delay_ms_ = delay_ms;
   enter(Phase::WAITING, now_ms);
@@ -74,6 +82,7 @@ void Arm::update(uint32_t now_ms)
   switch (phase_)
   {
     case Phase::IDLE:
+      releaseWhenSettled(elapsed_ms);
       break;
     case Phase::WAITING:
       if (elapsed_ms >= delay_ms_)
@@ -137,6 +146,14 @@ void Arm::setAngle(int16_t angle)
   }
   servo_.write(angle);
   last_angle_ = angle;
+}
+
+void Arm::releaseWhenSettled(uint32_t elapsed_ms)
+{
+  if (servo_.attached() && (elapsed_ms >= config::SERVO_DETACH_DELAY_MS))
+  {
+    servo_.detach();
+  }
 }
 
 }  // namespace skeleton
