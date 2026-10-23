@@ -15,8 +15,9 @@ namespace
 /// No angle has been written yet; outside the servo's 0..180 range.
 constexpr int16_t NO_ANGLE = -1;
 
-/// Keeps t * t * (3 * duration - 2 * t) in easeInOut() within uint32_t.
-constexpr uint32_t MAX_SWEEP_MS = 1000U;
+/// Keeps (t * t / d) * (3 * d - 2 * t), at most 3 * d * d, in easeInOut()
+/// within uint32_t.
+constexpr uint32_t MAX_SWEEP_MS = 30000U;
 
 static_assert((config::ARM_RAISE_MS <= MAX_SWEEP_MS) &&
                   (config::ARM_LOWER_MS <= MAX_SWEEP_MS),
@@ -32,10 +33,12 @@ static_assert((config::ARM_RAISE_MS <= MAX_SWEEP_MS) &&
 /// @return Eased time into the sweep, 0..duration_ms.
 uint32_t easeInOut(uint32_t elapsed_ms, uint32_t duration_ms)
 {
-  // duration * s(t / duration) with s(x) = 3x^2 - 2x^3.
+  // duration * s(t / duration) with s(x) = 3x^2 - 2x^3. Dividing by d
+  // halfway keeps the product small; it costs only a few ms of precision.
   const uint32_t t = elapsed_ms;
   const uint32_t d = duration_ms;
-  return (t * t * ((3U * d) - (2U * t))) / (d * d);
+  const uint32_t t_sq_over_d = (t * t) / d;
+  return (t_sq_over_d * ((3U * d) - (2U * t))) / d;
 }
 
 }  // namespace

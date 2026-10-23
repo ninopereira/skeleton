@@ -136,8 +136,8 @@ constexpr uint8_t LEFT_ARM_UP_DEG = 110U;
 constexpr uint8_t RIGHT_ARM_DOWN_DEG = 160U;
 constexpr uint8_t RIGHT_ARM_UP_DEG = 70U;
 /// Sweep times; longer is slower and smoother.
-constexpr uint32_t ARM_RAISE_MS = 400U;
-constexpr uint32_t ARM_LOWER_MS = 600U;
+constexpr uint32_t ARM_RAISE_MS = 1500U;
+constexpr uint32_t ARM_LOWER_MS = 1500U;
 /// Pause at the top before coming back down.
 constexpr uint32_t ARM_HOLD_TOP_MS = 700U;
 /// The second arm starts this long after the first (random in range), so
