@@ -84,7 +84,7 @@ static_assert(MP3_VOLUME <= 30U, "DFPlayer volume range is 0..30");
 /// script in mouth_script.hpp: an advert pauses the song and the module
 /// resumes the song where it left off when the voice ends.
 /// Songs are numbered in the order they were copied to the card, so copy
-/// them first, in the order they should play, then the ADVERT folder.
+/// them first, then the ADVERT folder. They play in a shuffled order.
 constexpr uint16_t MP3_FIRST_SONG_TRACK = 1U;
 constexpr uint16_t MP3_SONG_COUNT = 42U;
 /// "Track finished" reports arriving this soon after a song starts or
@@ -104,6 +104,8 @@ static_assert(MP3_NEXT_SONG_DELAY_MS < MP3_FINISH_GUARD_MS,
               "a rejected play must be reported within the guard");
 
 static_assert(MP3_SONG_COUNT > 0U, "the playlist needs at least one song");
+/// EEPROM address of the boot count (4 bytes) that seeds the shuffle.
+constexpr int BOOT_COUNT_EEPROM_ADDR = 0;
 /// Time from the play command until sound comes out (file seek/decode).
 /// The jaw starts this much later so it stays in sync; tune by eye.
 constexpr uint32_t VOICE_LATENCY_MS = 100U;

@@ -4,6 +4,7 @@
 #include "haunted_skeleton.hpp"
 
 #include <Arduino.h>
+#include <EEPROM.h>
 
 #include "config.hpp"
 
@@ -25,11 +26,11 @@ HauntedSkeleton::HauntedSkeleton()
              config::MOUTH_OPEN_DEG),
       arms_(),
       eyes_(config::EYES_LED_PIN),
+      playlist_(),
       mode_(Mode::WAITING),
       cooldown_start_ms_(0U),
       voice_start_ms_(0U),
       voice_index_(NO_VOICE),
-      song_index_(0U),
       song_start_ms_(0U),
       last_play_ms_(0U),
       song_queued_ms_(0U),
@@ -66,7 +67,9 @@ void HauntedSkeleton::begin()
     }
     signalError(config::MP3_ERROR_BLINK_COUNT);
   }
-  queueSong(0U, millis());
+  seedFromBootCount();
+  playlist_.begin();
+  queueSong(millis());
 }
 
 void HauntedSkeleton::update(uint32_t now_ms)
@@ -113,15 +116,19 @@ void HauntedSkeleton::printSensor(uint32_t now_ms)
   Serial.println(sensor_.isTargetPresent() ? F("  VISITOR") : F(""));
 }
 
-uint16_t HauntedSkeleton::nextSongIndex() const
+void HauntedSkeleton::seedFromBootCount()
 {
-  const uint16_t next = static_cast<uint16_t>(song_index_ + 1U);
-  return (next >= config::MP3_SONG_COUNT) ? 0U : next;
+  uint32_t boot_count = 0U;
+  EEPROM.get(config::BOOT_COUNT_EEPROM_ADDR, boot_count);
+  ++boot_count;
+  // put() only rewrites bytes that changed, which spares the EEPROM.
+  EEPROM.put(config::BOOT_COUNT_EEPROM_ADDR, boot_count);
+  // Mix in the time since reset too, in case the count was ever reset.
+  randomSeed(boot_count ^ micros());
 }
 
-void HauntedSkeleton::queueSong(uint16_t song_index, uint32_t now_ms)
+void HauntedSkeleton::queueSong(uint32_t now_ms)
 {
-  song_index_ = song_index;
   song_queued_ms_ = now_ms;
   is_song_queued_ = true;
 }
@@ -134,8 +141,7 @@ void HauntedSkeleton::playQueuedSong(uint32_t now_ms)
     return;
   }
   is_song_queued_ = false;
-  const uint16_t track =
-      static_cast<uint16_t>(config::MP3_FIRST_SONG_TRACK + song_index_);
+  const uint16_t track = playlist_.getTrack();
   mp3_.play(track);
   song_start_ms_ = now_ms;
   last_play_ms_ = now_ms;
@@ -178,13 +184,14 @@ void HauntedSkeleton::handleMp3Events(const Mp3Player::Events& events,
     if (song_retry_count_ < config::MP3_PLAY_RETRY_COUNT)
     {
       ++song_retry_count_;
-      queueSong(song_index_, now_ms);
+      queueSong(now_ms);
     }
     else
     {
       // The song itself is unplayable (e.g. missing): move on.
       song_retry_count_ = 0U;
-      queueSong(nextSongIndex(), now_ms);
+      playlist_.advance();
+      queueSong(now_ms);
     }
   }
   else if (is_song_over && is_song_settled)
@@ -194,7 +201,8 @@ void HauntedSkeleton::handleMp3Events(const Mp3Player::Events& events,
       Serial.println(F("MP3 song over"));
     }
     song_retry_count_ = 0U;
-    queueSong(nextSongIndex(), now_ms);
+    playlist_.advance();
+    queueSong(now_ms);
   }
   else
   {

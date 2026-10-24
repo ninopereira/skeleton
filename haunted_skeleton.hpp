@@ -10,6 +10,7 @@
 #include "eyes.hpp"
 #include "mouth.hpp"
 #include "mp3_player.hpp"
+#include "playlist.hpp"
 #include "presence_sensor.hpp"
 
 namespace skeleton
@@ -17,8 +18,8 @@ namespace skeleton
 
 /// @brief Coordinates the MP3 player, visitor sensor and mouth.
 ///
-/// - On begin() the playlist starts with its first song. Each song is
-///   followed by the next one, wrapping back to the first after the last.
+/// - On begin() the songs are shuffled, in a different order on every
+///   boot, and none repeats until all of them have played (see Playlist).
 ///   The next song starts config::MP3_NEXT_SONG_DELAY_MS after the module
 ///   reports the end of the previous one; a play command the module
 ///   rejects is resent.
@@ -75,14 +76,16 @@ class HauntedSkeleton
   /// @param [in] now_ms Current time from millis().
   void printSensor(uint32_t now_ms);
 
-  /// @brief Playlist position after the current song, wrapping to 0.
-  /// @return 0-based playlist position.
-  uint16_t nextSongIndex() const;
+  /// @brief Seeds random() with a count of boots kept in EEPROM.
+  ///
+  /// Nothing else at power-up is random enough: the time since reset is
+  /// nearly the same on every boot, so the shuffle would be too.
+  void seedFromBootCount();
 
-  /// @brief Plays a song after config::MP3_NEXT_SONG_DELAY_MS.
-  /// @param [in] song_index 0-based playlist position.
-  /// @param [in] now_ms     Current time from millis().
-  void queueSong(uint16_t song_index, uint32_t now_ms);
+  /// @brief Plays the playlist's current song after
+  ///        config::MP3_NEXT_SONG_DELAY_MS.
+  /// @param [in] now_ms Current time from millis().
+  void queueSong(uint32_t now_ms);
 
   /// @brief Sends the queued song's play command once its delay is over.
   /// @param [in] now_ms Current time from millis().
@@ -118,22 +121,21 @@ class HauntedSkeleton
   Mouth mouth_;
   Arms arms_;
   Eyes eyes_;
+  Playlist playlist_;
   Mode mode_;
   uint32_t cooldown_start_ms_;
   uint32_t voice_start_ms_;
   /// 0-based phrase chosen for the current (or last) greeting.
   uint8_t voice_index_;
-  /// 0-based playlist position of the current song.
-  uint16_t song_index_;
   /// When the current song started or last resumed after the voice.
   uint32_t song_start_ms_;
   /// When the last play command was sent.
   uint32_t last_play_ms_;
-  /// When the song at song_index_ was queued.
+  /// When the current song was queued.
   uint32_t song_queued_ms_;
-  /// The song at song_index_ is waiting to be played.
+  /// The current song is waiting to be played.
   bool is_song_queued_;
-  /// Play commands resent for the song at song_index_.
+  /// Play commands resent for the current song.
   uint8_t song_retry_count_;
   /// When the module last reported, through BUSY, that it was playing.
   uint32_t last_busy_ms_;

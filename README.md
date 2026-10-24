@@ -3,8 +3,9 @@
 Arduino sketch for an animatronic Halloween skeleton built on an
 Arduino Uno.
 
-- Plays the songs on the SD card in order on power-up, looping back to
-  the first song after the last one.
+- Plays the songs on the SD card in a random order, different on every
+  power-up. No song repeats until all of them have played; then a new
+  order is drawn.
 - When a visitor walks up, the song pauses and one of the voice clips,
   picked at random but never the same twice in a row, plays with the jaw
   synced to it, and each arm goes up and back down, one slightly after
@@ -50,10 +51,11 @@ With the VL53L0X in place of the sonar:
 1. Install the **Servo**, **DFRobotDFPlayerMini** (1.0.6) and
    **VL53L0X** by Pololu (1.3.1) libraries in the Arduino IDE. The
    VL53L0X library is needed even when the sonar is selected.
-2. Format a FAT32 SD card and copy the songs to its root one at a time
-   in the order they should play (the module numbers tracks by copy
-   order). Then create a folder `ADVERT` and copy the voice clips from
-   `sd_card/` into it, renamed so each starts with a **4-digit** number:
+2. Format a FAT32 SD card and copy the songs to its root (they play
+   shuffled, so their order does not matter, but copy them before the
+   voice clips: the module numbers tracks by copy order). Then create a
+   folder `ADVERT` and copy the voice clips from `sd_card/` into it,
+   renamed so each starts with a **4-digit** number:
    `0001_WhoAreYou.mp3`, `0002_ComeHere.mp3`, ... (the module only reads
    the first four digits). An advert pauses the song and the song resumes
    where it left off. Set `MP3_SONG_COUNT` in `config.hpp` to the number
