@@ -132,9 +132,9 @@ constexpr uint8_t RIGHT_ARM_SERVO_PIN = 11U;
 /// Calibrate these on the real arms. The servos face opposite ways, so
 /// the right arm's angles are mirrored (up may be smaller than down).
 constexpr uint8_t LEFT_ARM_DOWN_DEG = 20U;
-constexpr uint8_t LEFT_ARM_UP_DEG = 110U;
+constexpr uint8_t LEFT_ARM_UP_DEG = 70U;
 constexpr uint8_t RIGHT_ARM_DOWN_DEG = 160U;
-constexpr uint8_t RIGHT_ARM_UP_DEG = 70U;
+constexpr uint8_t RIGHT_ARM_UP_DEG = 100U;
 /// Sweep times; longer is slower and smoother.
 constexpr uint32_t ARM_RAISE_MS = 1500U;
 constexpr uint32_t ARM_LOWER_MS = 1500U;
