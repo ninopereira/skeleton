@@ -116,6 +116,11 @@ void Arm::update(uint32_t now_ms)
   }
 }
 
+bool Arm::isAtRest()
+{
+  return (phase_ == Phase::IDLE) && !servo_.attached();
+}
+
 void Arm::enter(Phase phase, uint32_t now_ms)
 {
   phase_ = phase;

@@ -11,7 +11,7 @@ namespace
 {
 
 /// Fixed by the module.
-constexpr uint32_t BAUD = 9600U;
+constexpr uint16_t BAUD = 9600U;
 /// BUSY swings between 0 V (playing) and the module's 3.3 V (idle). That
 /// "high" is too close to the Uno's 3.0 V digital threshold to trust, so
 /// it is read with the ADC and split at ~1.65 V (10 bits over 5 V).

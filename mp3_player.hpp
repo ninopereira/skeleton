@@ -6,12 +6,18 @@
 #include <stdint.h>
 
 #include <DFRobotDFPlayerMini.h>
-#include <SoftwareSerial.h>
+#include <NeoSWSerial.h>
 
 namespace skeleton
 {
 
 /// @brief Plays tracks on a DFPlayer Mini over a software serial port.
+///
+/// The port is NeoSWSerial, not SoftwareSerial: SoftwareSerial blocks
+/// interrupts for each whole byte received, which stretches the servo
+/// pulses and makes the arms jerk past their limits. NeoSWSerial only
+/// blocks them while sending, so the module's reports no longer disturb
+/// the servos.
 ///
 /// Tracks are addressed by index in the order they were copied to the SD
 /// card. Clone modules do not reliably report the end of a track on their
@@ -93,7 +99,7 @@ class Mp3Player
   bool isPlaying() const;
 
  private:
-  SoftwareSerial serial_;
+  NeoSWSerial serial_;
   DFRobotDFPlayerMini player_;
   uint8_t busy_pin_;
 };

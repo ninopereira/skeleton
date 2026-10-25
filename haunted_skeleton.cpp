@@ -135,8 +135,12 @@ void HauntedSkeleton::queueSong(uint32_t now_ms)
 
 void HauntedSkeleton::playQueuedSong(uint32_t now_ms)
 {
+  // Sending blocks interrupts for each byte, which stretches the pulse of
+  // any attached servo, so wait until the arms are detached. The song
+  // stays queued, so its delay below has passed by then.
   if (!is_song_queued_ ||
-      ((now_ms - song_queued_ms_) < config::MP3_NEXT_SONG_DELAY_MS))
+      ((now_ms - song_queued_ms_) < config::MP3_NEXT_SONG_DELAY_MS) ||
+      !arms_.isAtRest())
   {
     return;
   }

@@ -87,7 +87,8 @@ class HauntedSkeleton
   /// @param [in] now_ms Current time from millis().
   void queueSong(uint32_t now_ms);
 
-  /// @brief Sends the queued song's play command once its delay is over.
+  /// @brief Sends the queued song's play command once its delay is over
+  ///        and both arms are at rest.
   /// @param [in] now_ms Current time from millis().
   void playQueuedSong(uint32_t now_ms);
 

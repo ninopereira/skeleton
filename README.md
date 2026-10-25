@@ -48,8 +48,8 @@ With the VL53L0X in place of the sonar:
 
 ## Setup
 
-1. Install the **Servo**, **DFRobotDFPlayerMini** (1.0.6) and
-   **VL53L0X** by Pololu (1.3.1) libraries in the Arduino IDE. The
+1. Install the **Servo**, **DFRobotDFPlayerMini** (1.0.6),
+   **NeoSWSerial** and **VL53L0X** by Pololu (1.3.1) libraries in the Arduino IDE. The
    VL53L0X library is needed even when the sonar is selected.
 2. Format a FAT32 SD card and copy the songs to its root (they play
    shuffled, so their order does not matter, but copy them before the
@@ -75,11 +75,12 @@ With the VL53L0X in place of the sonar:
 
 ## Known issues
 
-- **Servo twitches when a track starts or ends.** SoftwareSerial pauses
-  interrupts while each byte to or from the DFPlayer is sent or received,
-  and the servos depend on those interrupts. If the twitch is a problem,
-  move the DFPlayer to hardware Serial (pins 0/1) and pass `Serial` to
-  `Mp3Player` instead of a SoftwareSerial port.
+- **Servo twitches when a command is sent to the DFPlayer.** NeoSWSerial
+  receives without blocking interrupts, but pauses them for about 1 ms
+  while each byte to the DFPlayer is sent, and the servos depend on those
+  interrupts. If the twitch is a problem, move the DFPlayer to hardware
+  Serial (pins 0/1) and pass `Serial` to `Mp3Player` instead of a
+  NeoSWSerial port.
 
 ## Code layout
 
