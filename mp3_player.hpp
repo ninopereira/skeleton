@@ -6,25 +6,23 @@
 #include <stdint.h>
 
 #include <DFRobotDFPlayerMini.h>
-#include <NeoSWSerial.h>
+#include <HardwareSerial.h>
 
 namespace skeleton
 {
 
-/// @brief Plays tracks on a DFPlayer Mini over a software serial port.
+/// @brief Plays tracks on a DFPlayer Mini over a hardware serial port.
 ///
-/// The port is NeoSWSerial, not SoftwareSerial: SoftwareSerial blocks
-/// interrupts for each whole byte received, which stretches the servo
-/// pulses and makes the arms jerk past their limits. NeoSWSerial only
-/// blocks them while sending, so the module's reports no longer disturb
-/// the servos.
+/// Software serial ports block interrupts while each byte is sent or
+/// received, which stretches the servo pulses and makes the arms jerk past
+/// their limits; the hardware port does not.
 ///
 /// Tracks are addressed by index in the order they were copied to the SD
 /// card. Clone modules do not reliably report the end of a track on their
 /// TX line, so the module's BUSY output (low while playing) is read too.
 ///
 /// @code{.cpp}
-/// Mp3Player mp3(3U, 2U, 14U);
+/// Mp3Player mp3(Serial, 14U);
 /// mp3.begin(25U);
 /// mp3.play(1U);
 /// // in loop():
@@ -37,25 +35,17 @@ namespace skeleton
 class Mp3Player
 {
  public:
-  /// @brief Binds the player to its pins.
-  /// @param [in] rx_pin   Board pin wired to the module's TX.
-  /// @param [in] tx_pin   Board pin wired to the module's RX.
+  /// @brief Binds the player to its serial port and BUSY pin.
+  /// @param [in] serial   Port wired to the module; begin() opens it.
   /// @param [in] busy_pin Analog-capable board pin wired to the module's
   ///                      BUSY output.
-  Mp3Player(uint8_t rx_pin, uint8_t tx_pin, uint8_t busy_pin);
+  Mp3Player(HardwareSerial& serial, uint8_t busy_pin);
 
   /// @brief What the module reported since the last poll().
   struct Events
   {
     bool is_track_finished;  ///< A track reached its natural end.
     bool has_error;          ///< The module rejected a command.
-    uint16_t error_code;     ///< Module error code, when has_error is set.
-    /// Any other message, e.g. a missing acknowledgement or a module
-    /// restart; only of interest for diagnostics.
-    bool has_other;
-    uint8_t other_type;     ///< Library message type, when has_other is set.
-    uint8_t other_command;  ///< Raw command byte, when has_other is set.
-    uint16_t other_value;   ///< Its parameter, when has_other is set.
   };
 
   Mp3Player(const Mp3Player&) = delete;
@@ -99,7 +89,7 @@ class Mp3Player
   bool isPlaying() const;
 
  private:
-  NeoSWSerial serial_;
+  HardwareSerial& serial_;
   DFRobotDFPlayerMini player_;
   uint8_t busy_pin_;
 };

@@ -18,7 +18,7 @@ Arduino Uno.
 |---|---|
 | VL53L0X time-of-flight sensor | **VIN on 3V3, not 5V**; GND → GND, SDA → A4, SCL → A5 |
 | *or* HC-SR04 sonar | trig pin 7, echo pin 6 |
-| DFPlayer Mini | **VCC on 3V3, not 5V**; module TX → pin 3; pin 2 → 680 Ω → module RX, 1 kΩ from module RX to GND; module BUSY → A0 |
+| DFPlayer Mini | **VCC on 3V3, not 5V**; module TX → pin 0 (RX); pin 1 (TX) → 680 Ω → module RX, 1 kΩ from module RX to GND; module BUSY → A0 |
 | Jaw servo | pin 9 |
 | Arm servos | left: pin 10, right: pin 11 |
 | Eye LEDs | pin 8 |
@@ -48,8 +48,8 @@ With the VL53L0X in place of the sonar:
 
 ## Setup
 
-1. Install the **Servo**, **DFRobotDFPlayerMini** (1.0.6),
-   **NeoSWSerial** and **VL53L0X** by Pololu (1.3.1) libraries in the Arduino IDE. The
+1. Install the **Servo**, **DFRobotDFPlayerMini** (1.0.6) and
+   **VL53L0X** by Pololu (1.3.1) libraries in the Arduino IDE. The
    VL53L0X library is needed even when the sonar is selected.
 2. Format a FAT32 SD card and copy the songs to its root (they play
    shuffled, so their order does not matter, but copy them before the
@@ -73,14 +73,19 @@ With the VL53L0X in place of the sonar:
 5. Calibrate `MOUTH_CLOSED_DEG` / `MOUTH_OPEN_DEG` and the arm angles and
    sweep times in `config.hpp` for your build.
 
-## Known issues
+## Hardware serial
 
-- **Servo twitches when a command is sent to the DFPlayer.** NeoSWSerial
-  receives without blocking interrupts, but pauses them for about 1 ms
-  while each byte to the DFPlayer is sent, and the servos depend on those
-  interrupts. If the twitch is a problem, move the DFPlayer to hardware
-  Serial (pins 0/1) and pass `Serial` to `Mp3Player` instead of a
-  NeoSWSerial port.
+The DFPlayer is on the Uno's only hardware serial port (pins 0/1). A
+software serial port would block interrupts for about 1 ms per byte,
+which stretches the servo pulses and makes the arms jerk past their
+limits. As a result:
+
+- The Serial Monitor cannot be used by the sketch; anything printed
+  would go to the DFPlayer. Faults are reported by the eye blinks.
+  `tools/tof_test` still prints to the Serial Monitor; `tools/mp3_test`
+  shows its results on the eye LEDs instead.
+- The USB port shares pins 0/1. If an upload fails, disconnect the
+  module's TX from pin 0 while uploading.
 
 ## Code layout
 

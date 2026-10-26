@@ -71,11 +71,6 @@ class HauntedSkeleton
   /// @param [in] blink_count Number of blinks; tells the errors apart.
   void signalError(uint8_t blink_count);
 
-  /// @brief Prints the sensor reading every config::SERIAL_PRINT_PERIOD_MS
-  ///        when config::SERIAL_DEBUG_SENSOR is set.
-  /// @param [in] now_ms Current time from millis().
-  void printSensor(uint32_t now_ms);
-
   /// @brief Seeds random() with a count of boots kept in EEPROM.
   ///
   /// Nothing else at power-up is random enough: the time since reset is
@@ -87,8 +82,7 @@ class HauntedSkeleton
   /// @param [in] now_ms Current time from millis().
   void queueSong(uint32_t now_ms);
 
-  /// @brief Sends the queued song's play command once its delay is over
-  ///        and both arms are at rest.
+  /// @brief Sends the queued song's play command once its delay is over.
   /// @param [in] now_ms Current time from millis().
   void playQueuedSong(uint32_t now_ms);
 
@@ -103,11 +97,6 @@ class HauntedSkeleton
   /// @param [in] events Reports from the module.
   /// @param [in] now_ms Current time from millis().
   void handleMp3Events(const Mp3Player::Events& events, uint32_t now_ms);
-
-  /// @brief Prints the module's reports when config::SERIAL_DEBUG_MP3 is
-  ///        set.
-  /// @param [in] events Reports from the module.
-  void printMp3Events(const Mp3Player::Events& events) const;
 
   /// @brief Starts the next song when the current one ends on its own.
   /// @param [in] now_ms Current time from millis().
@@ -140,8 +129,6 @@ class HauntedSkeleton
   uint8_t song_retry_count_;
   /// When the module last reported, through BUSY, that it was playing.
   uint32_t last_busy_ms_;
-  /// When the sensor reading was last printed.
-  uint32_t last_print_ms_;
 };
 
 }  // namespace skeleton

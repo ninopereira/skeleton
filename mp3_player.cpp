@@ -11,7 +11,7 @@ namespace
 {
 
 /// Fixed by the module.
-constexpr uint16_t BAUD = 9600U;
+constexpr uint32_t BAUD = 9600U;
 /// BUSY swings between 0 V (playing) and the module's 3.3 V (idle). That
 /// "high" is too close to the Uno's 3.0 V digital threshold to trust, so
 /// it is read with the ADC and split at ~1.65 V (10 bits over 5 V).
@@ -19,8 +19,8 @@ constexpr int BUSY_IDLE_MIN_COUNTS = 338;
 
 }  // namespace
 
-Mp3Player::Mp3Player(uint8_t rx_pin, uint8_t tx_pin, uint8_t busy_pin)
-    : serial_(rx_pin, tx_pin), player_(), busy_pin_(busy_pin)
+Mp3Player::Mp3Player(HardwareSerial& serial, uint8_t busy_pin)
+    : serial_(serial), player_(), busy_pin_(busy_pin)
 {
 }
 
@@ -47,12 +47,11 @@ void Mp3Player::playAdvert(uint16_t file_number)
 
 Mp3Player::Events Mp3Player::poll()
 {
-  Events events = {false, false, 0U, false, 0U, 0U, 0U};
+  Events events = {false, false};
   // available() returns after each complete message; readType() clears it.
   while (player_.available())
   {
     const uint8_t type = player_.readType();
-    const uint8_t command = player_.readCommand();
     if (type == DFPlayerPlayFinished)
     {
       events.is_track_finished = true;
@@ -60,14 +59,10 @@ Mp3Player::Events Mp3Player::poll()
     else if (type == DFPlayerError)
     {
       events.has_error = true;
-      events.error_code = player_.read();
     }
     else
     {
-      events.has_other = true;
-      events.other_type = type;
-      events.other_command = command;
-      events.other_value = player_.read();
+      // Acknowledgements, card and restart notices: nothing to act on.
     }
   }
   return events;

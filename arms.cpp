@@ -48,9 +48,4 @@ void Arms::update(uint32_t now_ms)
   right_.update(now_ms);
 }
 
-bool Arms::isAtRest()
-{
-  return left_.isAtRest() && right_.isAtRest();
-}
-
 }  // namespace skeleton

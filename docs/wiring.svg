@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 960" width="1100" height="960" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1000" width="1100" height="1000" font-family="Helvetica, Arial, sans-serif">
   <title>Haunted Skeleton wiring diagram</title>
   <style>
     .w { fill: none; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
@@ -6,6 +6,7 @@
     .v3 { stroke: #0b7285; }
     .gnd { stroke: #343a40; }
     .ser { stroke: #1c7ed6; }
+    .bsy { stroke: #1c7ed6; stroke-dasharray: 6 4; }
     .son { stroke: #2b8a3e; }
     .eye { stroke: #7048e8; }
     .srv { stroke: #f08c00; }
@@ -20,7 +21,7 @@
     .dot { stroke: none; }
   </style>
 
-  <rect width="1100" height="960" fill="#ffffff"/>
+  <rect width="1100" height="1000" fill="#ffffff"/>
 
   <text x="40" y="50" font-size="24" font-weight="bold" fill="#212529">Haunted Skeleton — wiring</text>
   <text x="40" y="76" class="t">Pin numbers from config.hpp. A dot joins wires; wires that cross without a dot are not connected.</text>
@@ -31,9 +32,10 @@
 
   <!-- header pads + labels -->
   <g class="pcb" text-anchor="end">
-    <text x="384" y="174">D3</text>
-    <text x="384" y="209">D2</text>
+    <text x="384" y="174">D0 (RX)</text>
+    <text x="384" y="209">D1 (TX)</text>
     <text x="384" y="284">3V3</text>
+    <text x="384" y="314">A0</text>
     <text x="384" y="349">D6</text>
     <text x="384" y="399">D7</text>
     <text x="384" y="479">D8</text>
@@ -47,6 +49,7 @@
     <rect x="392" y="164" width="16" height="12"/>
     <rect x="392" y="199" width="16" height="12"/>
     <rect x="392" y="274" width="16" height="12"/>
+    <rect x="392" y="304" width="16" height="12"/>
     <rect x="392" y="339" width="16" height="12"/>
     <rect x="392" y="389" width="16" height="12"/>
     <rect x="392" y="469" width="16" height="12"/>
@@ -62,12 +65,13 @@
   <text x="340" y="684" class="pcb" text-anchor="middle">GND</text>
 
   <!-- ===== DFPlayer Mini ===== -->
-  <rect x="700" y="135" width="180" height="105" rx="6" class="box"/>
+  <rect x="700" y="135" width="180" height="125" rx="6" class="box"/>
   <text x="790" y="190" class="h" text-anchor="middle">DFPlayer Mini</text>
   <text x="790" y="208" class="t" text-anchor="middle">MP3 player</text>
   <text x="790" y="225" class="t" text-anchor="middle">microSD: voice + songs</text>
   <text x="708" y="166" class="p">TX</text>
   <text x="708" y="201" class="p">RX</text>
+  <text x="708" y="251" class="p">BUSY</text>
   <text x="872" y="166" class="p" text-anchor="end">GND</text>
   <text x="872" y="201" class="p" text-anchor="end">VCC</text>
 
@@ -130,7 +134,7 @@
   <path d="M190 900 H270 V850" class="w bat"/>
   <text x="128" y="790" class="wl">power in</text>
 
-  <!-- MP3 serial (software serial) -->
+  <!-- MP3 serial (hardware serial: unplug MP3 TX from D0 if an upload fails) -->
   <path d="M408 170 H700" class="w ser"/>
   <path d="M408 205 H520 M556 205 H700" class="w ser"/>
   <rect x="520" y="200" width="36" height="10" fill="#ffffff" stroke="#212529" stroke-width="1.5"/>
@@ -138,11 +142,15 @@
   <rect x="615" y="215" width="10" height="36" fill="#ffffff" stroke="#212529" stroke-width="1.5"/>
   <path d="M606 258 H634 M611 264 H629 M616 270 H624" stroke="#343a40" stroke-width="2"/>
   <circle cx="620" cy="205" r="5" fill="#1c7ed6" class="dot"/>
-  <text x="555" y="163" class="wl" text-anchor="middle">D3 (RX) ← MP3 TX</text>
-  <text x="470" y="198" class="wl" text-anchor="middle">D2 (TX) → MP3 RX</text>
+  <text x="555" y="163" class="wl" text-anchor="middle">D0 (RX) ← MP3 TX</text>
+  <text x="470" y="198" class="wl" text-anchor="middle">D1 (TX) → MP3 RX</text>
   <text x="538" y="226" class="wl" text-anchor="middle">680 Ω</text>
   <text x="632" y="237" class="wl">1 kΩ</text>
   <text x="640" y="268" class="wl">GND</text>
+
+  <!-- MP3 BUSY (low while playing), read with the ADC -->
+  <path d="M700 247 H680 V310 H408" class="w bsy"/>
+  <text x="414" y="303" class="wl">A0 ← MP3 BUSY (low = playing)</text>
 
   <!-- DFPlayer supply: 3.3 V only -->
   <path d="M408 280 H910 V205 H880" class="w v3"/>
@@ -209,13 +217,16 @@
       <line x1="150" y1="44" x2="178" y2="44" class="w vs"/><text x="186" y="48">Servo 5–6 V</text>
       <line x1="150" y1="66" x2="178" y2="66" class="w gnd"/><text x="186" y="70">GND</text>
       <line x1="150" y1="88" x2="178" y2="88" class="w bat"/><text x="186" y="92">Battery</text>
+      <line x1="150" y1="110" x2="178" y2="110" class="w bsy"/><text x="186" y="114">MP3 BUSY</text>
 
       <text x="300" y="26">• Servos draw too much for the board's</text>
       <text x="300" y="42">  5 V regulator: give them their own supply.</text>
       <text x="300" y="62">• Servo supply GND must join board GND.</text>
       <text x="300" y="82">• DFPlayer VCC to 3V3, never 5 V.</text>
-      <text x="300" y="102">• 680 Ω + 1 kΩ divider drops D2's 5 V</text>
+      <text x="300" y="102">• 680 Ω + 1 kΩ divider drops D1's 5 V</text>
       <text x="300" y="118">  to ~3 V on the MP3 RX pin.</text>
+      <text x="300" y="138">• USB uploads share D0/D1: if one fails,</text>
+      <text x="300" y="154">  unplug MP3 TX from D0 while uploading.</text>
     </g>
   </g>
 </svg>

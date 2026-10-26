@@ -19,7 +19,7 @@ constexpr uint8_t NO_VOICE = Mouth::SPEECH_COUNT;
 }  // namespace
 
 HauntedSkeleton::HauntedSkeleton()
-    : mp3_(config::MP3_RX_PIN, config::MP3_TX_PIN, config::MP3_BUSY_PIN),
+    : mp3_(Serial, config::MP3_BUSY_PIN),
       sensor_(),
       mouth_(config::MOUTH_SERVO_PIN,
              config::MOUTH_CLOSED_DEG,
@@ -36,8 +36,7 @@ HauntedSkeleton::HauntedSkeleton()
       song_queued_ms_(0U),
       is_song_queued_(false),
       song_retry_count_(0U),
-      last_busy_ms_(0U),
-      last_print_ms_(0U)
+      last_busy_ms_(0U)
 {
 }
 
@@ -46,25 +45,13 @@ void HauntedSkeleton::begin()
   eyes_.begin();
   mouth_.begin();
   arms_.begin();
-  if (config::SERIAL_DEBUG)
-  {
-    Serial.begin(config::SERIAL_BAUD);
-  }
 
   if (!sensor_.begin())
   {
-    if (config::SERIAL_DEBUG)
-    {
-      Serial.println(F("Distance sensor not answering"));
-    }
     signalError(config::SENSOR_ERROR_BLINK_COUNT);
   }
   if (!mp3_.begin(config::MP3_VOLUME))
   {
-    if (config::SERIAL_DEBUG)
-    {
-      Serial.println(F("MP3 player not answering"));
-    }
     signalError(config::MP3_ERROR_BLINK_COUNT);
   }
   seedFromBootCount();
@@ -75,7 +62,6 @@ void HauntedSkeleton::begin()
 void HauntedSkeleton::update(uint32_t now_ms)
 {
   sensor_.update(now_ms);
-  printSensor(now_ms);
   mouth_.update(now_ms);
   arms_.update(now_ms);
   updateMusic(now_ms);
@@ -93,27 +79,6 @@ void HauntedSkeleton::signalError(uint8_t blink_count)
     delay(config::ERROR_BLINK_MS);
   }
   delay(config::ERROR_GAP_MS);
-}
-
-void HauntedSkeleton::printSensor(uint32_t now_ms)
-{
-  if (!config::SERIAL_DEBUG || !config::SERIAL_DEBUG_SENSOR ||
-      ((now_ms - last_print_ms_) < config::SERIAL_PRINT_PERIOD_MS))
-  {
-    return;
-  }
-  last_print_ms_ = now_ms;
-  const int16_t distance_cm = sensor_.getLastDistanceCm();
-  if (distance_cm == PresenceSensor::NO_TARGET)
-  {
-    Serial.print(F("-- cm"));
-  }
-  else
-  {
-    Serial.print(distance_cm);
-    Serial.print(F(" cm"));
-  }
-  Serial.println(sensor_.isTargetPresent() ? F("  VISITOR") : F(""));
 }
 
 void HauntedSkeleton::seedFromBootCount()
@@ -135,12 +100,8 @@ void HauntedSkeleton::queueSong(uint32_t now_ms)
 
 void HauntedSkeleton::playQueuedSong(uint32_t now_ms)
 {
-  // Sending blocks interrupts for each byte, which stretches the pulse of
-  // any attached servo, so wait until the arms are detached. The song
-  // stays queued, so its delay below has passed by then.
   if (!is_song_queued_ ||
-      ((now_ms - song_queued_ms_) < config::MP3_NEXT_SONG_DELAY_MS) ||
-      !arms_.isAtRest())
+      ((now_ms - song_queued_ms_) < config::MP3_NEXT_SONG_DELAY_MS))
   {
     return;
   }
@@ -151,11 +112,6 @@ void HauntedSkeleton::playQueuedSong(uint32_t now_ms)
   last_play_ms_ = now_ms;
   // BUSY takes a moment to go active; do not count that as silence.
   last_busy_ms_ = now_ms;
-  if (config::SERIAL_DEBUG && config::SERIAL_DEBUG_MP3)
-  {
-    Serial.print(F("MP3 playing track "));
-    Serial.println(track);
-  }
 }
 
 bool HauntedSkeleton::hasSongStopped(uint32_t now_ms)
@@ -200,10 +156,6 @@ void HauntedSkeleton::handleMp3Events(const Mp3Player::Events& events,
   }
   else if (is_song_over && is_song_settled)
   {
-    if (config::SERIAL_DEBUG && config::SERIAL_DEBUG_MP3)
-    {
-      Serial.println(F("MP3 song over"));
-    }
     song_retry_count_ = 0U;
     playlist_.advance();
     queueSong(now_ms);
@@ -214,41 +166,10 @@ void HauntedSkeleton::handleMp3Events(const Mp3Player::Events& events,
   }
 }
 
-void HauntedSkeleton::printMp3Events(const Mp3Player::Events& events) const
-{
-  if (!config::SERIAL_DEBUG || !config::SERIAL_DEBUG_MP3)
-  {
-    return;
-  }
-  if (events.is_track_finished)
-  {
-    Serial.println(F("MP3 track finished"));
-  }
-  if (events.has_error)
-  {
-    // 1 busy, 2 sleeping, 3 bad frame, 4 bad checksum, 5 track out of
-    // range, 6 track not found.
-    Serial.print(F("MP3 error "));
-    Serial.println(events.error_code);
-  }
-  if (events.has_other)
-  {
-    // Library types: 0 no reply (timeout), 1 garbled message, 2 card in,
-    // 3 card out, 4 card online (the module restarted), 11 query reply.
-    Serial.print(F("MP3 message "));
-    Serial.print(events.other_type);
-    Serial.print(F(" cmd 0x"));
-    Serial.print(events.other_command, HEX);
-    Serial.print(F(" "));
-    Serial.println(events.other_value);
-  }
-}
-
 void HauntedSkeleton::updateMusic(uint32_t now_ms)
 {
   // Poll in every mode so the receive buffer is drained during the voice.
   const Mp3Player::Events events = mp3_.poll();
-  printMp3Events(events);
   // While talking, the song is paused under the voice, so reports belong
   // to the voice, and a new song must not cut it off.
   const bool is_voice_active =

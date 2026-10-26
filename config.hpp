@@ -68,13 +68,12 @@ static_assert(static_cast<uint32_t>(DETECT_MAX_CM) * 10U < TOF_MAX_RANGE_MM,
               "the detection range must be within the sensor's range");
 /// @}
 
-/// @name DFPlayer Mini MP3 player (software serial)
+/// @name DFPlayer Mini MP3 player (hardware serial)
 /// @{
-/// Board pin wired to the module's TX.
-constexpr uint8_t MP3_RX_PIN = 3U;
-/// Board pin wired to the module's RX through a 680 Ohm + 1 kOhm divider
-/// (5 V to ~3 V; the module runs on 3.3 V).
-constexpr uint8_t MP3_TX_PIN = 2U;
+/// The module is on the hardware serial port, so the Serial Monitor
+/// cannot be used: the module's TX goes to pin 0 (RX), and pin 1 (TX)
+/// goes to the module's RX through a 680 Ohm + 1 kOhm divider (5 V to
+/// ~3 V; the module runs on 3.3 V).
 /// Board pin wired to the module's BUSY output (14 is A0 on the Uno). It
 /// is read with analogRead(), so it must be one of A0..A5.
 constexpr uint8_t MP3_BUSY_PIN = 14U;
@@ -173,19 +172,6 @@ constexpr uint8_t SENSOR_ERROR_BLINK_COUNT = 3U;
 constexpr uint32_t ERROR_BLINK_MS = 150U;
 /// Dark pause after each error pattern, so two patterns can be told apart.
 constexpr uint32_t ERROR_GAP_MS = 1000U;
-/// @}
-
-/// @name Serial Monitor diagnostics
-/// @{
-/// Enables the Serial Monitor (pins 0 and 1) and the start-up messages.
-constexpr bool SERIAL_DEBUG = true;
-/// Prints every distance sensor reading (needs SERIAL_DEBUG).
-constexpr bool SERIAL_DEBUG_SENSOR = false;
-/// Prints the MP3 player's commands and reports (needs SERIAL_DEBUG).
-constexpr bool SERIAL_DEBUG_MP3 = true;
-constexpr uint32_t SERIAL_BAUD = 115200U;
-/// Time between printed sensor readings.
-constexpr uint32_t SERIAL_PRINT_PERIOD_MS = 100U;
 /// @}
 
 /// @name Behaviour timing

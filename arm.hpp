@@ -47,14 +47,6 @@ class Arm
   /// @param [in] now_ms Current time from millis().
   void update(uint32_t now_ms);
 
-  /// @brief Tells whether the servo has stopped receiving pulses.
-  ///
-  /// Not const: Servo::attached() is not.
-  ///
-  /// @retval true  The arm is down and its servo detached.
-  /// @retval false The arm is moving, or still settling at rest.
-  bool isAtRest();
-
  private:
   /// @brief Gesture phase.
   enum class Phase : uint8_t

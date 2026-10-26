@@ -38,11 +38,6 @@ class Arms
   /// @param [in] now_ms Current time from millis().
   void update(uint32_t now_ms);
 
-  /// @brief Tells whether both servos have stopped receiving pulses.
-  /// @retval true  Both arms are down and their servos detached.
-  /// @retval false An arm is moving, or still settling at rest.
-  bool isAtRest();
-
  private:
   Arm left_;
   Arm right_;
